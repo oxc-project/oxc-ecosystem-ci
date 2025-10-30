@@ -1,0 +1,214 @@
+name: oxfmt ecosystem ci
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # Every 6 hours
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - "oxfmt-matrix.json"
+      - ".github/workflows/oxfmt-ci.yml"
+      - "bin/clone-oxfmt.js"
+      - "bin/test-oxfmt.js"
+  push:
+    branches:
+      - main
+    paths:
+      - "oxfmt-matrix.json"
+      - ".github/workflows/oxfmt-ci.yml"
+      - "bin/clone-oxfmt.js"
+      - "bin/test-oxfmt.js"
+  workflow_dispatch:
+    inputs:
+      issue-number:
+        description: "Issue number for comment"
+        required: false
+        type: string
+      comment-id:
+        description: "Comment ID to update"
+        required: false
+        type: string
+      ref:
+        description: "Git ref to build from"
+        required: false
+        type: string
+        default: "main"
+
+jobs:
+  reply:
+    name: Reply
+    if: ${{ inputs.issue-number && inputs.comment-id }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
+        with:
+          token: ${{ secrets.OXC_BOT_PAT }}
+          repository: oxc-project/oxc
+          issue-number: ${{ inputs.issue-number }}
+          comment-id: ${{ inputs.comment-id }}
+          reactions: eyes
+
+  build:
+    name: Build oxfmt
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          repository: oxc-project/oxc
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+          show-progress: false
+
+      - uses: oxc-project/setup-rust@1ff88fdaffd6ae35c0fb32ccc159340b37d0beac # v1.0.7
+        with:
+          save-cache: ${{ github.ref_name == 'main' }}
+
+      - uses: oxc-project/setup-node@fdbf0dfd334c4e6d56ceeb77d91c76339c2a0885 # v1.0.4
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+
+      - run: pnpm install
+
+      - run: pnpm --filter ./apps/oxfmt run build
+        env:
+          RUSTFLAGS: "-C debug-assertions=true"
+
+      # `pnpm pack` does not work for `apps/oxfmt` because:
+      # - `.node` is ignored, not being packed
+      # - Also, `bin` field does not exist
+      # Instead, using `npm/oxfmt` for global CLI install
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          if-no-files-found: error
+          name: oxfmt
+          path: |
+            ./apps/oxfmt/dist
+            ./npm/oxfmt/package.json
+            ./npm/oxfmt/bin
+
+  checkout:
+    name: Read oxfmt-matrix.json
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.setmatrix.outputs.content }}
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - id: setmatrix
+        uses: jaywcjlove/github-action-read-file@d7632d78b76cbfbe8841dc31dd08dd2020175c80 # main
+        with:
+          localfile: ./oxfmt-matrix.json
+
+  test:
+    needs: checkout
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.checkout.outputs.matrix) }}
+    name: Test ${{ matrix.repository }}
+    steps:
+      - name: Clone ${{ matrix.repository }}
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          repository: ${{ matrix.repository }}
+          ref: ${{ matrix.ref }}
+          path: ${{ matrix.path }}
+          persist-credentials: false
+          show-progress: false
+
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: oxfmt
+          path: oxfmt-package
+
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          version: 10
+
+      - name: Install oxfmt globally
+        run: |
+          # Create package structure
+          # ```
+          # oxfmt-install
+          # |- package.json
+          # |- bin/oxfmt
+          # |- dist/cli.js, *.node, etc
+          # ```
+          mkdir -p oxfmt-install
+          cp oxfmt-package/npm/oxfmt/package.json oxfmt-install/
+          cp -r oxfmt-package/npm/oxfmt/bin oxfmt-install/
+          cp -r oxfmt-package/apps/oxfmt/dist oxfmt-install/
+          # Install dependencies first
+          cd oxfmt-install
+          # Install globally
+          npm install -g .
+
+      - name: Run oxfmt
+        working-directory: ${{ matrix.path }}
+        run: ${{ matrix.command }}
+
+  comment:
+    needs: test
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Reply Comment
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        id: script
+        if: ${{ inputs.issue-number }}
+        with:
+          github-token: ${{ secrets.OXC_BOT_PAT }}
+          result-encoding: string
+          script: |
+            const {
+              data: { jobs },
+            } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+              per_page: 100,
+            });
+            let result = jobs
+              .filter((job) => job.name.startsWith("Test "))
+              .map((job) => {
+                const suite = job.name.slice(5);
+                return { suite, conclusion: job.conclusion, link: job.html_url };
+              });
+            const url = `${context.serverUrl}//${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const urlLink = `[Open](${url})`;
+            const conclusionEmoji = {
+              success: ":white_check_mark:",
+              failure: ":x:",
+              cancelled: ":stop_button:",
+            };
+            const body = `
+            ## [Oxfmt Ecosystem CI](${urlLink})
+            | suite | result |
+            |-------|--------|
+            ${result.map((r) => `| [${r.suite}](${r.link}) | ${conclusionEmoji[r.conclusion]} |`).join("\n")}
+            `;
+            return body;
+
+      - uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
+        if: ${{ inputs.issue-number && inputs.comment-id }}
+        with:
+          token: ${{ secrets.OXC_BOT_PAT }}
+          repository: oxc-project/oxc
+          issue-number: ${{ inputs.issue-number }}
+          comment-id: ${{ inputs.comment-id }}
+          body: ${{ steps.script.outputs.result }}
+          edit-mode: replace

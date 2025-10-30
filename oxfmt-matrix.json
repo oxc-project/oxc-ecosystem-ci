@@ -1,0 +1,26 @@
+[
+  {
+    "repository": "vitejs/vite",
+    "ref": "main",
+    "path": "vite",
+    "command": "oxfmt -c ./.prettierrc.json --check"
+  },
+  {
+    "repository": "vuejs/core",
+    "ref": "main",
+    "path": "vuejs/core",
+    "command": "oxfmt -c ./.prettierrc --check"
+  },
+  {
+    "repository": "eggjs/egg",
+    "ref": "main",
+    "path": "eggjs/egg",
+    "command": "oxfmt --check"
+  },
+  {
+    "repository": "storybookjs/mcp",
+    "ref": "main",
+    "path": "storybookjs/mcp",
+    "command": "oxfmt --check"
+  }
+]
