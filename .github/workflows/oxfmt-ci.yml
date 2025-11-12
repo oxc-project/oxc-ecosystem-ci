@@ -73,7 +73,7 @@ jobs:
 
       - run: pnpm install
 
-      - run: pnpm --filter ./apps/oxfmt run build
+      - run: pnpm --filter ./apps/oxfmt run build --detect_code_removal
         env:
           RUSTFLAGS: "-C debug-assertions=true"
 
