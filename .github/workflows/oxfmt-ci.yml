@@ -52,7 +52,7 @@ jobs:
           reactions: eyes
 
   build:
-    name: Build oxfmt
+    name: Build
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -73,9 +73,11 @@ jobs:
 
       - run: pnpm install
 
-      - run: pnpm --filter ./apps/oxfmt run build --detect_code_removal
+      # Equivalent to `pnpm build` with `detect_code_removal` feature
+      - run: pnpm --filter ./apps/oxfmt run build-napi --release --features allocator,detect_code_removal
         env:
           RUSTFLAGS: "-C debug-assertions=true"
+      - run: pnpm --filter ./apps/oxfmt run build-js
 
       # `pnpm pack` does not work for `apps/oxfmt` because:
       # - `.node` is ignored, not being packed
@@ -149,10 +151,8 @@ jobs:
           cp oxfmt-package/npm/oxfmt/package.json oxfmt-install/
           cp -r oxfmt-package/npm/oxfmt/bin oxfmt-install/
           cp -r oxfmt-package/apps/oxfmt/dist oxfmt-install/
-          # Install dependencies first
-          cd oxfmt-install
           # Install globally
-          npm install -g .
+          npm install -g ./oxfmt-install
 
       - name: Run oxfmt
         working-directory: ${{ matrix.path }}
