@@ -3,17 +3,19 @@
     "repository": "vitejs/vite",
     "ref": "main",
     "path": "vite",
-    "command": "oxfmt -c ./.prettierrc.json --check"
+    "command": "oxfmt -c ./.prettierrc.json --check",
+    "NOTE": "The repo is still using prettier"
   },
   {
     "repository": "vuejs/core",
     "ref": "main",
     "path": "vuejs/core",
-    "command": "oxfmt -c ./.prettierrc --check"
+    "command": "oxfmt -c ./.prettierrc --check",
+    "NOTE": "The repo is still using prettier"
   },
   {
     "repository": "eggjs/egg",
-    "ref": "main",
+    "ref": "next",
     "path": "eggjs/egg",
     "command": "oxfmt --check"
   },

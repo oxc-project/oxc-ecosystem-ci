@@ -1,27 +1,66 @@
 #!/usr/bin/env node
 
-const assert = require("node:assert")
+const assert = require("node:assert");
 const { execSync } = require("node:child_process");
-const { existsSync } = require("node:fs");
-const { resolve } = require("node:path");
+const { existsSync, writeFileSync } = require("node:fs");
+const { resolve, join } = require("node:path");
 
-const matrix = require("../matrix.json");
+// Parse command-line arguments
+const allArgs = process.argv.slice(2);
+let matrixFile = "../oxlint-matrix.json"; // default to oxlint
+let binary = null;
+let extraArgs = [];
 
-let binary = process.argv[2];
+// Parse flags and arguments
+for (let i = 0; i < allArgs.length; i++) {
+  const arg = allArgs[i];
+  if (arg === "--oxfmt") {
+    matrixFile = "../oxfmt-matrix.json";
+  } else if (arg === "--oxlint") {
+    matrixFile = "../oxlint-matrix.json";
+  } else if (!binary) {
+    binary = arg;
+  } else {
+    extraArgs.push(arg);
+  }
+}
+
+const matrix = require(matrixFile);
 
 if (!binary) {
-  console.error("USAGE: ./test.js PATH_TO_OXLINT_BINARY");
+  console.error(
+    "USAGE: ./test.js [--oxlint|--oxfmt] PATH_TO_BINARY [EXTRA_ARGS...]",
+  );
+  console.error("  --oxlint: Use matrix.json (default)");
+  console.error("  --oxfmt:  Use oxfmt-matrix.json");
   process.exit(0);
 }
 binary = resolve(binary); // normalize relative paths
 
-assert(existsSync("repos"), "No repositories found, did you forget to run clone.js?");
+assert(
+  existsSync("repos"),
+  "No repositories found, did you forget to run clone.js?",
+);
 
-const args = process.argv.slice(3);
+console.log(`Using matrix file: ${matrixFile}`);
+console.log(`Binary: ${binary}`);
 
 for (const item of matrix) {
-  const oxlint = item.command.replace(/^.\/oxlint/, binary);
-  const command = `cd repos/${item.path} && ${oxlint} ${args.join(' ')}`;
+  const repoPath = join("repos", item.path);
+
+  // Write .oxfmtrc.json config if options are provided (for oxfmt)
+  if (item.options) {
+    const configPath = join(repoPath, ".oxfmtrc.json");
+    writeFileSync(configPath, JSON.stringify(item.options, null, 2));
+    console.log(`Created config at ${configPath}`);
+  }
+
+  // Replace binary name in command
+  const commandWithBinary = item.command.replace(
+    /^(oxfmt|oxlint|\.\/oxlint)/,
+    binary,
+  );
+  const command = `cd ${repoPath} && ${commandWithBinary} ${extraArgs.join(" ")}`;
   console.log(command);
   execSync(command, { stdio: "inherit" });
 }

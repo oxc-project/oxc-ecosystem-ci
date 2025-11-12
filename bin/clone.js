@@ -1,7 +1,18 @@
 #!/usr/bin/env node
 
 const exec = require("child_process").exec;
-const matrix = require("../matrix.json");
+
+// Parse command-line arguments
+const args = process.argv.slice(2);
+let matrixFile = "../oxlint-matrix.json"; // default to oxlint
+
+if (args.includes("--oxfmt")) {
+  matrixFile = "../oxfmt-matrix.json";
+} else if (args.includes("--oxlint")) {
+  matrixFile = "../oxlint-matrix.json";
+}
+
+const matrix = require(matrixFile);
 
 /**
  * @typedef {Object} MatrixItem
@@ -9,6 +20,7 @@ const matrix = require("../matrix.json");
  * @property {string} path
  * @property {string} ref
  * @property {string} command
+ * @property {Object} [options]
  */
 
 /**
@@ -28,9 +40,10 @@ function cloneRepo(item) {
 }
 
 if (require.main === module) {
+  console.log(`Using matrix file: ${matrixFile}`);
   for (const item of matrix) {
     cloneRepo(item);
   }
 }
 
-module.exports = { cloneRepo }
+module.exports = { cloneRepo };

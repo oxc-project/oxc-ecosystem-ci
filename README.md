@@ -1,35 +1,29 @@
 # Oxc Ecosystem CI
 
-This repository is used to run integration tests for `oxlint` and `oxfmt` ecosystem projects.
+This repository is used to run integration tests for `oxlint` and `oxfmt` ecosystem projects. The workflows will be run on a scheduled basis and can also be triggered manually.
 
-## Add a new integration
+## Oxlint
 
-* Add your repository to [./matrix.json](./matrix.json) and create a PR.
+### Maintenance
 
-## Maintenance
-
-* [Boshen](https://github.com/Boshen) may submit a `oxlint` and/or `oxfmt` adjustment PR to your repository if it fails to run correctly.
+* [Boshen](https://github.com/Boshen) may submit a `oxlint` adjustment PR to your repository if it fails to run correctly.
 * Due to maintenance burden, a [sponsorship](https://github.com/sponsors/Boshen) will have a more likely hood of having the PR accepted.
 
-## Scheduled github workflow
+### Manual github workflow
 
-Workflows are scheduled to run automatically every day.
-
-## Manual github workflow
-
-* open [workflow](https://github.com/oxc-project/oxlint-ecosystem-ci/actions/workflows/ecosystem-ci.yml)
+* open [workflow](https://github.com/oxc-project/oxc-ecosystem-ci/actions/workflows/oxlint-ci.yml)
 * click 'Run workflow' button on top right of the list
 * change `ref` for a different branch
 
-## Local
+### Local
 
-- `pnpm clone` - clones all the repositories
-- `pnpm update` - updates (git pull) all the repositories
-- `pnpm test /path/to/oxc/target/release/oxlint ARGS` - run `oxlint`
+- `pnpm run clone:oxlint` - clones all the repositories
+- `pnpm run update:oxlint` - updates (git pull) all the repositories
+- `pnpm run test:oxlint /path/to/oxc/target/release/oxlint ARGS` - run `oxlint`
 
-## Integrated Repositories
+### Integrated Repositories
 
-See [./matrix.json](./matrix.json).
+See [./oxlint-matrix.json](./oxlint-matrix.json).
 
 Notable repositories:
 
@@ -42,6 +36,28 @@ Notable repositories:
 * [elastic/kibana](https://github.com/elastic/kibana)
 * [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped)
 
+## Oxfmt
+
+### What we are checking
+
+1. Oxfmt can format the integrated repositories without any differences.
+2. Oxfmt does not drop any code in the formatting process.
+3. Oxfmt does not panic during the formatting process.
+
+### Manual github workflow
+
+* open [workflow](https://github.com/oxc-project/oxc-ecosystem-ci/actions/workflows/oxfmt-ci.yml)
+* click 'Run workflow' button on top right of the list
+* change `ref` for a different branch
+
+### Local
+- `pnpm run clone:oxfmt` - clones all the repositories
+- `pnpm run update:oxfmt` - updates (git pull) all the repositories
+- `pnpm run test:oxfmt /path/to/oxc/target/release/oxfmt ARGS` - run `oxfmt`
+
+### Integrated Repositories
+
+See [./oxfmt-matrix.json](./oxfmt-matrix.json).
 
 <p align="center">
   <a href="https://github.com/sponsors/Boshen">
