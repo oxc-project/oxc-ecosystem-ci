@@ -2,7 +2,7 @@ name: oxfmt ecosystem ci
 
 on:
   schedule:
-    - cron: "0 */6 * * *" # Every 6 hours
+    - cron: "30 1,7,13,19 * * *" # Every 6 hours, gaps in the oxlint-ci
   pull_request:
     types: [opened, synchronize]
     paths:
