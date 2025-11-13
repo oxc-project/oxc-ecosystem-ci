@@ -6,12 +6,12 @@ on:
   pull_request:
     types: [opened, synchronize]
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
   push:
     branches:
       - main
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
   workflow_dispatch:
     inputs: # for create comment action https://github.com/peter-evans/create-or-update-comment?tab=readme-ov-file#action-inputs
       issue-number:
@@ -23,7 +23,7 @@ on:
       ref:
         required: false
         type: string
-        default: 'main'
+        default: "main"
 
 jobs:
   reply:
@@ -84,7 +84,7 @@ jobs:
             ./npm/oxlint/bin
 
   checkout:
-    name: Read matrix.json
+    name: Read oxlint-matrix.json
     needs: build
     runs-on: ubuntu-latest
     outputs:
@@ -95,7 +95,7 @@ jobs:
       - id: setmatrix
         uses: jaywcjlove/github-action-read-file@d7632d78b76cbfbe8841dc31dd08dd2020175c80 # main
         with:
-          localfile: ./matrix.json
+          localfile: ./oxlint-matrix.json
 
   test:
     needs: checkout
