@@ -28,7 +28,7 @@
   {
     "repository": "actualbudget/actual",
     "ref": "master",
-    "path": "actualbudget/actual",
+    "path": "actual",
     "command": "oxfmt -c .oxfmtrc.json --check"
   }
 ]
