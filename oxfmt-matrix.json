@@ -24,5 +24,11 @@
     "ref": "main",
     "path": "storybookjs/mcp",
     "command": "oxfmt --check"
+  },
+  {
+    "repository": "actualbudget/actual",
+    "ref": "master",
+    "path": "actual",
+    "command": "oxfmt -c .oxfmtrc.json --check"
   }
 ]

@@ -112,5 +112,11 @@
     "ref": "main",
     "path": "date-fns",
     "command": "oxlint -c .oxlintrc.json"
+  },
+  {
+    "repository": "actualbudget/actual",
+    "ref": "master",
+    "path": "actual",
+    "command": "oxlint -c .oxlintrc.json"
   }
 ]
