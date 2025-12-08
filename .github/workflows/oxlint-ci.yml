@@ -154,7 +154,7 @@ jobs:
         run: |
           set +e # disable exit on run
 
-          oxlint --fix --import-plugin --jest-plugin --jsdoc-plugin --jsx-a11y-plugin --nextjs-plugin --react-perf-plugin --node-plugin --promise-plugin -D all --silent
+          oxlint --fix --import-plugin --jest-plugin --jsdoc-plugin --jsx-a11y-plugin --nextjs-plugin --react-perf-plugin --node-plugin --promise-plugin --vitest-plugin --vue-plugin -D all --silent
 
           EXIT_CODE=$?
 
