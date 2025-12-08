@@ -149,6 +149,17 @@ jobs:
         working-directory: ${{ matrix.path }}
         run: ${{ matrix.command }}
 
+      - name: Check diff
+        working-directory: ${{ matrix.path }}
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Code is not properly formatted. See the diff below:";
+            git --no-pager diff;
+            exit 1;
+          else
+            echo "Code is properly formatted.";
+          fi
+
   comment:
     needs: test
     if: ${{ always() }}

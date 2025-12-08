@@ -1,34 +1,26 @@
 [
   {
-    "repository": "vitejs/vite",
-    "ref": "main",
-    "path": "vite",
-    "command": "oxfmt -c ./.prettierrc.json --check",
-    "NOTE": "The repo is still using prettier"
-  },
-  {
-    "repository": "vuejs/core",
-    "ref": "main",
-    "path": "vuejs/core",
-    "command": "oxfmt -c ./.prettierrc --check",
-    "NOTE": "The repo is still using prettier"
-  },
-  {
     "repository": "eggjs/egg",
     "ref": "next",
     "path": "eggjs/egg",
-    "command": "oxfmt --check"
-  },
-  {
-    "repository": "storybookjs/mcp",
-    "ref": "main",
-    "path": "storybookjs/mcp",
-    "command": "oxfmt --check"
+    "command": "oxfmt"
   },
   {
     "repository": "actualbudget/actual",
     "ref": "master",
     "path": "actual",
-    "command": "oxfmt -c .oxfmtrc.json --check"
+    "command": "oxfmt"
+  },
+  {
+    "repository": "AmanVarshney01/create-better-t-stack",
+    "ref": "master",
+    "path": "AmanVarshney01/create-better-t-stack",
+    "command": "main"
+  },
+  {
+    "repository": "cnpm/cnpmcore",
+    "ref": "master",
+    "path": "cnpmcore",
+    "command": "oxfmt"
   }
 ]
