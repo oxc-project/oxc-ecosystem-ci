@@ -142,6 +142,9 @@ jobs:
           cp oxfmt-package/npm/oxfmt/package.json oxfmt-install/
           cp -r oxfmt-package/npm/oxfmt/bin oxfmt-install/
           cp -r oxfmt-package/apps/oxfmt/dist oxfmt-install/
+          # Dependencies are not installed automatically by this way
+          cd oxfmt-install && npm install
+          cd ..
           # Install globally
           npm install -g ./oxfmt-install
 

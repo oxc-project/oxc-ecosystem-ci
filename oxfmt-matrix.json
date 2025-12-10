@@ -13,9 +13,9 @@
   },
   {
     "repository": "AmanVarshney01/create-better-t-stack",
-    "ref": "master",
+    "ref": "main",
     "path": "AmanVarshney01/create-better-t-stack",
-    "command": "main"
+    "command": "oxfmt"
   },
   {
     "repository": "cnpm/cnpmcore",
