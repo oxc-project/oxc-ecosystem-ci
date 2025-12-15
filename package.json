@@ -18,5 +18,5 @@
         "clean": "node bin/clean.js",
         "lint": "npx oxlint@latest ."
     },
-    "packageManager": "pnpm@10.25.0"
+    "packageManager": "pnpm@10.26.0"
 }
