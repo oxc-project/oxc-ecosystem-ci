@@ -22,5 +22,11 @@
     "ref": "master",
     "path": "cnpmcore",
     "command": "oxfmt"
+  },
+  {
+    "repository": "monkeytypegame/monkeytype",
+    "ref": "master",
+    "path": "monkeytype",
+    "command": "oxfmt"
   }
 ]
