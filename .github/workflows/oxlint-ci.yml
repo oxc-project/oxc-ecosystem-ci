@@ -83,9 +83,32 @@ jobs:
             ./npm/oxlint/package.json
             ./npm/oxlint/bin
 
+  build-tsgolint:
+    name: Build
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          repository: oxc-project/tsgolint
+          persist-credentials: false
+          show-progress: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - run: just build
+
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          if-no-files-found: error
+          name: oxlint-tsgolint
+          path: |
+            ./tsgolint
+
   checkout:
     name: Read oxlint-matrix.json
-    needs: build
+    needs: [build, build-tsgolint]
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.setmatrix.outputs.content }}
@@ -121,6 +144,11 @@ jobs:
           name: oxlint
           path: oxlint-package
 
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: oxlint-tsgolint
+          path: oxlint-tsgolint
+
       - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           node-version: 24
@@ -145,16 +173,23 @@ jobs:
           # Install globally
           npm install -g ./oxlint-install
 
+      - name: Setup tsgolint
+        run: chmod +x oxlint-tsgolint/tsgolint
+
       - name: Run
         working-directory: ${{ matrix.path }}
         run: ${{ matrix.command }}
+        env:
+          OXLINT_TSGOLINT_PATH: ${{ github.workspace }}/oxlint-tsgolint/tsgolint
 
       - name: Check Panic
         working-directory: ${{ matrix.path }}
+        env:
+          OXLINT_TSGOLINT_PATH: ${{ github.workspace }}/oxlint-tsgolint/tsgolint
         run: |
           set +e # disable exit on run
 
-          oxlint --fix --import-plugin --jest-plugin --jsdoc-plugin --jsx-a11y-plugin --nextjs-plugin --react-perf-plugin --node-plugin --promise-plugin --vitest-plugin --vue-plugin -D all --silent
+          oxlint --fix --import-plugin --jest-plugin --jsdoc-plugin --jsx-a11y-plugin --nextjs-plugin --react-perf-plugin --node-plugin --promise-plugin --vitest-plugin --vue-plugin -D all --silent --type-aware --type-check
 
           EXIT_CODE=$?
 
