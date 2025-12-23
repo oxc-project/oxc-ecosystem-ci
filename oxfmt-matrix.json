@@ -28,5 +28,11 @@
     "ref": "master",
     "path": "monkeytype",
     "command": "oxfmt"
+  },
+  {
+    "repository": "formatjs/formatjs",
+    "ref": "main",
+    "path": "formatjs",
+    "command": "oxfmt"
   }
 ]
