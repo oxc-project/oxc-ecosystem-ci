@@ -34,5 +34,11 @@
     "ref": "main",
     "path": "formatjs",
     "command": "oxfmt"
+  },
+  {
+    "repository": "vuejs/core",
+    "ref": "minor",
+    "path": "vue",
+    "command": "oxfmt"
   }
 ]
