@@ -37,7 +37,7 @@
   },
   {
     "repository": "vuejs/core",
-    "ref": "main",
+    "ref": "minor",
     "path": "vue",
     "command": "oxfmt"
   }
