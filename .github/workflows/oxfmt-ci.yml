@@ -25,6 +25,8 @@ on:
         type: string
         default: "main"
 
+permissions: {}
+
 jobs:
   reply:
     name: Reply

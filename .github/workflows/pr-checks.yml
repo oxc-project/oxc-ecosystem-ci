@@ -6,10 +6,13 @@ on:
     paths-ignore:
       - '**/*.md'
 
+permissions: {}
+
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
       - run: npx oxlint@latest . --format github
