@@ -117,6 +117,6 @@
     "repository": "actualbudget/actual",
     "ref": "master",
     "path": "actual",
-    "command": "oxlint -c .oxlintrc.json"
+    "command": "oxlint"
   }
 ]
