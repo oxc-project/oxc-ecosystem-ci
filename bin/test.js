@@ -31,7 +31,7 @@ if (!binary) {
   console.error(
     "USAGE: ./test.js [--oxlint|--oxfmt] PATH_TO_BINARY [EXTRA_ARGS...]",
   );
-  console.error("  --oxlint: Use matrix.json (default)");
+  console.error("  --oxlint: Use oxlint-matrix.json (default)");
   console.error("  --oxfmt:  Use oxfmt-matrix.json");
   process.exit(0);
 }
@@ -61,6 +61,14 @@ for (const item of matrix) {
     binary,
   );
   const command = `cd ${repoPath} && ${commandWithBinary} ${extraArgs.join(" ")}`;
+  // Install any oxlint jsPlugins required by this repo before running the command
+  // TODO: Skip this step if the oxfmt flag is passed
+  try {
+    const { prepareOxlintJsPlugins } = require("../lib/oxlint-plugins");
+    prepareOxlintJsPlugins(repoPath, commandWithBinary);
+  } catch (e) {
+    console.error("Error preparing oxlint jsPlugins:", e);
+  }
   console.log(command);
   execSync(command, { stdio: "inherit" });
 }
