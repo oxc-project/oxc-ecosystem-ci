@@ -17,13 +17,16 @@ on:
       issue-number:
         required: false
         type: string
+        description: "The issue or pull request number to comment on."
       comment-id:
         required: false
         type: string
+        description: "The ID of an existing comment to update."
       ref:
         required: false
         type: string
         default: "main"
+        description: "The git ref to build oxfmt from."
 
 permissions: {}
 
