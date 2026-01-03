@@ -135,6 +135,6 @@
     "repository": "formatjs/formatjs",
     "ref": "main",
     "path": "formatjs",
-    "command": "oxlint"
+    "command": "oxlint -c .oxlintrc.json"
   }
 ]
