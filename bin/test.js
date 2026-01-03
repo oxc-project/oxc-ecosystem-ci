@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const assert = require("node:assert");
-const { execSync } = require("node:child_process");
+const { execSync, execFileSync } = require('node:child_process');
 const { existsSync, writeFileSync } = require("node:fs");
 const { resolve, join } = require("node:path");
 
@@ -33,7 +33,6 @@ if (!tool) {
 }
 
 matrixFile = `../${tool}-matrix.json`;
-
 const matrix = require(matrixFile);
 
 if (!binary) {
@@ -73,10 +72,16 @@ for (const item of matrix) {
   if (tool === "oxlint") {
     // Install any oxlint jsPlugins required by this repo before running the oxlint command
     try {
-      const { prepareOxlintJsPlugins } = require("../lib/oxlint-plugins");
-      prepareOxlintJsPlugins(repoPath, commandWithBinary);
+      // Run the script inside the repo checkout so relative config paths resolve correctly.
+      // This is cursed but whatever.
+      console.log('Preparing oxlint jsPlugins in', repoPath);
+      execFileSync('node', ['../scripts/install-oxlint-plugins.js'], {
+        cwd: repoPath,
+        stdio: 'inherit',
+        env: Object.assign({}, process.env, { MATRIX_COMMAND: commandWithBinary }),
+      });
     } catch (e) {
-      console.error("Error preparing oxlint jsPlugins:", e);
+      console.error('Error preparing oxlint jsPlugins:', e);
     }
   }
   console.log(command);
