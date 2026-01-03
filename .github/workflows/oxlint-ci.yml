@@ -159,7 +159,7 @@ jobs:
           persist-credentials: false
           show-progress: false
 
-      - name: Install oxlint jsPlugins (global)
+      - name: Install oxlint jsPlugins
         working-directory: ${{ matrix.path }}
         env:
           MATRIX_COMMAND: ${{ matrix.command }}
