@@ -50,8 +50,11 @@ function readConfigAndCollect(configPath, set) {
   }
 }
 
+// Sometimes this is `echo "skip"`, make sure not to error on that.
 function collectFromCommand(cmd, set) {
   if (!cmd) { return; }
+  // skip if command includes "skip"
+  if (/\bskip\b/.test(cmd)) { return; }
   // match -c <arg> and --config <arg>, allow quoted paths
   const patterns = [
     /((?:^|\s)-c)\s+(['"])?([^\s'"]+)\2/g,
