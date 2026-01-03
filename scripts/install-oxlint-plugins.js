@@ -139,11 +139,11 @@ function filterInstallable(plugins) {
 const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z_-]+|@[A-Za-z_-]+\/eslint-plugin(?:-[A-Za-z_-]+)?)$/;
 
 /**
- * Install npm packages globally.
+ * Install npm packages, we do this locally from the config file's directory.
  * @param {string[]} pkgs npm packages that will need to be installed for jsPlugins to work.
  * @throws Will throw an error if installation fails or package names are invalid.
  */
-function installGlobalPackages(pkgs) {
+function installPackages(pkgs) {
   if (!pkgs || pkgs.length === 0) {
     return;
   }
@@ -154,17 +154,25 @@ function installGlobalPackages(pkgs) {
     throw new Error('Refusing to install invalid or unsafe package names.');
   }
 
-  console.log("Installing global packages:", pkgs.join(", "));
+  // Determine installation directory from config file location
+  // TODO: Need to handle the case where there is a config file nested in a subdirectory.
+  const installDir = process.cwd();
+  
+  console.log("Installing packages in", installDir, ":", pkgs.join(", "));
 
   // Using spawnSync with args array here to try to avoid shell interpretation.
   // And `--ignore-scripts` to avoid running any install scripts from untrusted packages,
   // but the CI job has very limited permissions anyway, so the damage that could be done
   // here should be minimal, and it'd require a lot of work to actually exploit this in
   // any way.
-  const args = ['install', '-g', '--ignore-scripts', ...pkgs];
-  const res = spawnSync('npm', args, { stdio: 'inherit', shell: false });
+  const args = ['install', '--ignore-scripts', ...pkgs];
+  const res = spawnSync('npm', args, {
+    stdio: 'inherit', 
+    shell: false,
+    cwd: installDir // Install in the config file's directory
+  });
 
-  if (res.error) { 
+  if (res.error) {
     throw res.error;
   }
 
@@ -186,9 +194,9 @@ function main() {
     return;
   }
 
-  console.log("Attempting to install global packages:", pkgs.join(", "));
+  console.log("Attempting to install packages:", pkgs.join(", "));
   try {
-    installGlobalPackages(pkgs);
+    installPackages(pkgs);
   } catch (e) {
     console.error("Failed to install plugins:", e.message);
     process.exit(1);
