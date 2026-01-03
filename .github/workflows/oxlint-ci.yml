@@ -150,11 +150,20 @@ jobs:
           # Install globally
           npm install -g ./oxlint-install
 
+      # Need to checkout oxc-ecosystem-ci to access install-oxlint-plugins.js
+      - name: Checkout ecosystem repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          repository: oxc-project/oxc-ecosystem-ci
+          path: oxc-ecosystem-ci
+
       - name: Install oxlint jsPlugins (global)
         working-directory: ${{ matrix.path }}
         env:
           MATRIX_COMMAND: ${{ matrix.command }}
-        run: node ../scripts/install-oxlint-plugins.js
+        run: |
+          ls -R ${{ github.workspace }}/oxc-ecosystem-ci
+          node ${{ github.workspace }}/oxc-ecosystem-ci/scripts/install-oxlint-plugins.js
 
       - name: Run
         working-directory: ${{ matrix.path }}
