@@ -156,14 +156,14 @@ jobs:
         with:
           repository: oxc-project/oxc-ecosystem-ci
           path: oxc-ecosystem-ci
+          persist-credentials: false
+          show-progress: false
 
       - name: Install oxlint jsPlugins (global)
         working-directory: ${{ matrix.path }}
         env:
           MATRIX_COMMAND: ${{ matrix.command }}
-        run: |
-          ls -R ${{ github.workspace }}/oxc-ecosystem-ci
-          node ${{ github.workspace }}/oxc-ecosystem-ci/scripts/install-oxlint-plugins.js
+        run: node ${{ github.workspace }}/oxc-ecosystem-ci/scripts/install-oxlint-plugins.js
 
       - name: Run
         working-directory: ${{ matrix.path }}
