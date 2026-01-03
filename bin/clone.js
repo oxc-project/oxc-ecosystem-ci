@@ -4,13 +4,19 @@ const exec = require("child_process").exec;
 
 // Parse command-line arguments
 const args = process.argv.slice(2);
-let matrixFile = "../oxlint-matrix.json"; // default to oxlint
+let matrixFile = undefined;
+let tool = undefined;
 
 if (args.includes("--oxfmt")) {
-  matrixFile = "../oxfmt-matrix.json";
+  tool = "oxfmt";
 } else if (args.includes("--oxlint")) {
-  matrixFile = "../oxlint-matrix.json";
+  tool = "oxlint";
+} else {
+  console.error("Error: You must specify either --oxlint or --oxfmt");
+  process.exit(1);
 }
+
+matrixFile = `../${tool}-matrix.json`;
 
 const matrix = require(matrixFile);
 

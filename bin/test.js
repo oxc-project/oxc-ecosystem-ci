@@ -7,7 +7,8 @@ const { resolve, join } = require("node:path");
 
 // Parse command-line arguments
 const allArgs = process.argv.slice(2);
-let matrixFile = "../oxlint-matrix.json"; // default to oxlint
+let matrixFile = undefined;
+let tool = undefined; // default to undefined
 let binary = null;
 let extraArgs = [];
 
@@ -15,9 +16,9 @@ let extraArgs = [];
 for (let i = 0; i < allArgs.length; i++) {
   const arg = allArgs[i];
   if (arg === "--oxfmt") {
-    matrixFile = "../oxfmt-matrix.json";
+    tool = "oxfmt";
   } else if (arg === "--oxlint") {
-    matrixFile = "../oxlint-matrix.json";
+    tool = "oxlint";
   } else if (!binary) {
     binary = arg;
   } else {
@@ -25,13 +26,21 @@ for (let i = 0; i < allArgs.length; i++) {
   }
 }
 
+if (!tool) {
+  // error if no tool specified
+  console.error("Error: You must specify either --oxlint or --oxfmt");
+  process.exit(0);
+}
+
+matrixFile = `../${tool}-matrix.json`;
+
 const matrix = require(matrixFile);
 
 if (!binary) {
   console.error(
     "USAGE: ./test.js [--oxlint|--oxfmt] PATH_TO_BINARY [EXTRA_ARGS...]",
   );
-  console.error("  --oxlint: Use oxlint-matrix.json (default)");
+  console.error("  --oxlint: Use oxlint-matrix.json");
   console.error("  --oxfmt:  Use oxfmt-matrix.json");
   process.exit(0);
 }
@@ -61,14 +70,6 @@ for (const item of matrix) {
     binary,
   );
   const command = `cd ${repoPath} && ${commandWithBinary} ${extraArgs.join(" ")}`;
-  // Install any oxlint jsPlugins required by this repo before running the command
-  // TODO: Skip this step if the oxfmt flag is passed
-  try {
-    const { prepareOxlintJsPlugins } = require("../lib/oxlint-plugins");
-    prepareOxlintJsPlugins(repoPath, commandWithBinary);
-  } catch (e) {
-    console.error("Error preparing oxlint jsPlugins:", e);
-  }
   console.log(command);
   execSync(command, { stdio: "inherit" });
 }
