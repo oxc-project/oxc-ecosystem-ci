@@ -151,7 +151,7 @@ function installGlobalPackages(pkgs) {
     throw new Error('Refusing to install invalid or unsafe package names.');
   }
 
-  console.log("Installing packages:", pkgs.join(", "));
+  console.log("Installing global packages:", pkgs.join(", "));
 
   // Using spawnSync with args array here to try to avoid shell interpretation.
   // And `--ignore-scripts` to avoid running any install scripts from untrusted packages,
@@ -183,7 +183,7 @@ function main() {
     return;
   }
 
-  console.log("Installing global packages:", pkgs.join(", "));
+  console.log("Attempting to install global packages:", pkgs.join(", "));
   try {
     installGlobalPackages(pkgs);
   } catch (e) {
