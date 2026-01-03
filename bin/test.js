@@ -70,6 +70,15 @@ for (const item of matrix) {
     binary,
   );
   const command = `cd ${repoPath} && ${commandWithBinary} ${extraArgs.join(" ")}`;
+  if (tool === "oxlint") {
+    // Install any oxlint jsPlugins required by this repo before running the oxlint command
+    try {
+      const { prepareOxlintJsPlugins } = require("../lib/oxlint-plugins");
+      prepareOxlintJsPlugins(repoPath, commandWithBinary);
+    } catch (e) {
+      console.error("Error preparing oxlint jsPlugins:", e);
+    }
+  }
   console.log(command);
   execSync(command, { stdio: "inherit" });
 }
