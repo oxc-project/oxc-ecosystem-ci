@@ -1,5 +1,119 @@
 [
   {
+    "repository": "rolldown/rolldown",
+    "ref": "main",
+    "path": "rolldown",
+    "command": "oxlint --deny-warnings -c .oxlintrc.json --ignore-path=.oxlintignore --import-plugin --jsdoc-plugin"
+  },
+  {
+    "repository": "napi-rs/napi-rs",
+    "ref": "main",
+    "path": "napi-rs",
+    "command": "oxlint --deny-warnings --ignore-path=.oxlintignore --import-plugin -D correctness -A no-export"
+  },
+  {
+    "repository": "toeverything/affine",
+    "ref": "canary",
+    "path": "affine",
+    "command": "oxlint -c oxlint.json --deny-warnings"
+  },
+  {
+    "repository": "preactjs/preact",
+    "ref": "main",
+    "path": "preact",
+    "command": "oxlint --deny-warnings -c oxlint.json src test/browser test/node test/shared debug compat hooks test-utils"
+  },
+  {
+    "repository": "microsoft/vscode",
+    "ref": "main",
+    "path": "vscode",
+    "command": "oxlint -W all --ignore-pattern '**/fixtures' --ignore-pattern 'test-*.ts' --silent"
+  },
+  {
+    "repository": "calcom/cal.com",
+    "ref": "main",
+    "path": "cal",
+    "command": "echo 'skipped'"
+  },
+  {
+    "repository": "bbc/simorgh",
+    "ref": "latest",
+    "path": "simorgh",
+    "command": "oxlint -D no-unreachable"
+  },
+  {
+    "repository": "sidebase/nuxt-auth",
+    "ref": "main",
+    "path": "nuxt-auth",
+    "command": "oxlint --deny-warnings -D correctness -D suspicious -D perf"
+  },
+  {
+    "repository": "elastic/kibana",
+    "ref": "main",
+    "path": "kibana",
+    "command": "echo 'skipped'"
+  },
+  {
+    "repository": "DefinitelyTyped/DefinitelyTyped",
+    "ref": "master",
+    "path": "DefinitelyTyped",
+    "command": "echo 'skipped'"
+  },
+  {
+    "repository": "Milkdown/milkdown",
+    "ref": "main",
+    "path": "milkdown",
+    "command": "oxlint -c .oxlintrc.json"
+  },
+  {
+    "repository": "bluesky-social/social-app",
+    "ref": "main",
+    "path": "bluesky",
+    "command": "echo 'skipped'"
+  },
+  {
+    "repository": "oven-sh/bun",
+    "ref": "main",
+    "path": "bun",
+    "command": "oxlint -c oxlint.json src/js"
+  },
+  {
+    "repository": "nestjs/nest",
+    "ref": "master",
+    "path": "nest",
+    "command": "echo 'skipped'"
+  },
+  {
+    "repository": "vercel/next.js",
+    "ref": "canary",
+    "path": "next",
+    "command": "echo 'skipped'"
+  },
+  {
+    "repository": "monkeytypegame/monkeytype",
+    "ref": "master",
+    "path": "monkeytype",
+    "command": "oxlint -c ./backend/.oxlintrc.json ./backend && oxlint -c ./frontend/.oxlintrc.json ./frontend"
+  },
+  {
+    "repository": "PostHog/posthog",
+    "ref": "master",
+    "path": "posthog",
+    "command": "oxlint"
+  },
+  {
+    "repository": "outline/outline",
+    "ref": "main",
+    "path": "outline",
+    "command": "oxlint"
+  },
+  {
+    "repository": "date-fns/date-fns",
+    "ref": "main",
+    "path": "date-fns",
+    "command": "oxlint -c .oxlintrc.json"
+  },
+  {
     "repository": "actualbudget/actual",
     "ref": "master",
     "path": "actual",
