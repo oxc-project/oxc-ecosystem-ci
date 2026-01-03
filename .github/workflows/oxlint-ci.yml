@@ -154,7 +154,7 @@ jobs:
         working-directory: ${{ matrix.path }}
         env:
           MATRIX_COMMAND: ${{ matrix.command }}
-        run: node scripts/install-oxlint-plugins.js
+        run: node ../../scripts/install-oxlint-plugins.js
 
       - name: Run
         working-directory: ${{ matrix.path }}
