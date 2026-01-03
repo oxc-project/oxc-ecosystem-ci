@@ -133,7 +133,7 @@ function filterInstallable(plugins) {
  * - @foo-bar/eslint-plugin-name
  * - @foo-bar/eslint-plugin-name_with_underscores
  */
-const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z_.-]+|@[\w_-]+\/eslint-plugin(?:-[\w_-]+)?)$/;
+const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z_-]+|@[A-Za-z_-]+\/eslint-plugin(?:-[A-Za-z_-]+)?)$/;
 
 /**
  * Install npm packages globally.
