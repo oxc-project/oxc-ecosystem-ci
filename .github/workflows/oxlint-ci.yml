@@ -150,6 +150,12 @@ jobs:
           # Install globally
           npm install -g ./oxlint-install
 
+      - name: Install oxlint jsPlugins (global)
+        working-directory: ${{ matrix.path }}
+        env:
+          MATRIX_COMMAND: ${{ matrix.command }}
+        run: node scripts/install-oxlint-plugins.js
+
       - name: Run
         working-directory: ${{ matrix.path }}
         run: ${{ matrix.command }}
