@@ -40,5 +40,17 @@
     "ref": "minor",
     "path": "vue",
     "command": "oxfmt"
+  },
+  {
+    "repository": "fuma-nama/fumadocs",
+    "ref": "dev",
+    "path": "fumadocs",
+    "command": "oxfmt"
+  },
+  {
+    "repository": "fastify/fastify-vite",
+    "ref": "main",
+    "path": "fastify-vite",
+    "command": "oxfmt"
   }
 ]
