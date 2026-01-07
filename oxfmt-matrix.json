@@ -52,5 +52,11 @@
     "ref": "main",
     "path": "fastify-vite",
     "command": "oxfmt"
+  },
+  {
+    "repository": "vercel/turborepo",
+    "ref": "main",
+    "path": "turborepo",
+    "command": "oxfmt"
   }
 ]
