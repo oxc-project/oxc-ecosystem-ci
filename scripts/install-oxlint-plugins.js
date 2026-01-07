@@ -8,7 +8,13 @@ const DEFAULT_CONFIG_FILES = [".oxlintrc.json"];
 
 // Remove block and line comments from the json config file so we can parse it (imperfect but yolo)
 function stripJsonComments(content) {
-  return content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  return content
+    // remove block comments that occupy whole lines
+    .replace(/^\s*\/\*[\s\S]*?\*\/\s*$/gm, "")
+    // remove whole-line // comments
+    .replace(/^\s*\/\/.*$/gm, "")
+    // strip empty lines
+    .replace(/^\s*[\r\n]/gm, "");
 }
 
 /**
