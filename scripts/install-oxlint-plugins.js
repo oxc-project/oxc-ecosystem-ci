@@ -13,6 +13,8 @@ function stripJsonComments(content) {
     .replace(/^\s*\/\*[\s\S]*?\*\/\s*$/gm, "")
     // remove whole-line // comments
     .replace(/^\s*\/\/.*$/gm, "")
+    // remove trailing // comments (after content)
+    .replace(/\s*\/\/.*$/gm, "")
     // strip empty lines
     .replace(/^\s*[\r\n]/gm, "");
 }
