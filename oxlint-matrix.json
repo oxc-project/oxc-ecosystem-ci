@@ -118,5 +118,23 @@
     "ref": "master",
     "path": "actual",
     "command": "oxlint"
+  },
+  {
+    "repository": "glide-browser/glide",
+    "ref": "main",
+    "path": "glide",
+    "command": "oxlint"
+  },
+  {
+    "repository": "oxidecomputer/console",
+    "ref": "main",
+    "path": "console",
+    "command": "oxlint"
+  },
+  {
+    "repository": "formatjs/formatjs",
+    "ref": "main",
+    "path": "formatjs",
+    "command": "oxlint -c .oxlintrc.json"
   }
 ]

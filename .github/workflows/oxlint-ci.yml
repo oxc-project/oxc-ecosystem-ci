@@ -17,13 +17,16 @@ on:
       issue-number:
         required: false
         type: string
+        description: "The issue or pull request number to comment on."
       comment-id:
         required: false
         type: string
+        description: "The ID of an existing comment to update."
       ref:
         required: false
         type: string
         default: "main"
+        description: "The git ref to build oxlint from."
 
 permissions: {}
 
@@ -146,6 +149,21 @@ jobs:
           cp -r oxlint-package/apps/oxlint/dist oxlint-install/
           # Install globally
           npm install -g ./oxlint-install
+
+      # Need to checkout oxc-ecosystem-ci to access install-oxlint-plugins.js
+      - name: Checkout ecosystem repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          repository: oxc-project/oxc-ecosystem-ci
+          path: oxc-ecosystem-ci
+          persist-credentials: false
+          show-progress: false
+
+      - name: Install oxlint jsPlugins
+        working-directory: ${{ matrix.path }}
+        env:
+          MATRIX_COMMAND: ${{ matrix.command }}
+        run: node ${{ github.workspace }}/oxc-ecosystem-ci/scripts/install-oxlint-plugins.js
 
       - name: Run
         working-directory: ${{ matrix.path }}
