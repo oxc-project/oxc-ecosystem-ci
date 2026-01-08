@@ -159,6 +159,10 @@ jobs:
           persist-credentials: false
           show-progress: false
 
+      - name: pnpm install
+        run: pnpm install
+        working-directory: ${{ github.workspace }}/oxc-ecosystem-ci
+
       - name: Install oxlint jsPlugins
         working-directory: ${{ matrix.path }}
         env:
