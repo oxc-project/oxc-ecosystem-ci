@@ -18,5 +18,8 @@
         "clean": "node bin/clean.js",
         "lint": "npx oxlint@latest ."
     },
-    "packageManager": "pnpm@10.27.0"
+    "packageManager": "pnpm@10.27.0",
+    "dependencies": {
+        "strip-json-comments": "^5.0.3"
+    }
 }

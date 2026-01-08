@@ -1,23 +1,11 @@
 #!/usr/bin/env node
 
-const fs = require("node:fs");
-const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import stripJsonComments from "strip-json-comments";
 
 const DEFAULT_CONFIG_FILES = [".oxlintrc.json"];
-
-// Remove block and line comments from the json config file so we can parse it (imperfect but yolo)
-function stripJsonComments(content) {
-  return content
-    // remove block comments that occupy whole lines
-    .replace(/^\s*\/\*[\s\S]*?\*\/\s*$/gm, "")
-    // remove whole-line // comments
-    .replace(/^\s*\/\/.*$/gm, "")
-    // remove trailing // comments (after content)
-    .replace(/\s*\/\/.*$/gm, "")
-    // strip empty lines
-    .replace(/^\s*[\r\n]/gm, "");
-}
 
 /**
  * Read a config file and collect jsPlugins into the set.
