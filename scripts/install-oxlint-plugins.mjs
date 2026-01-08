@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import stripJsonComments from "strip-json-comments";
+import { strip } from "json-strip-comments";
 
 const DEFAULT_CONFIG_FILES = [".oxlintrc.json"];
 
@@ -30,7 +30,7 @@ function readConfigAndCollect(configPath, set) {
 
   try {
     let raw = fs.readFileSync(configPath, "utf8");
-    raw = stripJsonComments(raw);
+    raw = strip(raw);
     const obj = JSON.parse(raw);
     const arr = Array.isArray(obj.jsPlugins) ? obj.jsPlugins : [];
     for (const it of arr) {

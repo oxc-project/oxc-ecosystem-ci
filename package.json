@@ -20,6 +20,6 @@
     },
     "packageManager": "pnpm@10.27.0",
     "dependencies": {
-        "strip-json-comments": "^5.0.3"
+        "json-strip-comments": "^1.0.4"
     }
 }
