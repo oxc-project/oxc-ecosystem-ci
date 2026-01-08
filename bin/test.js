@@ -75,7 +75,7 @@ for (const item of matrix) {
       // Run the script inside the repo checkout so relative config paths resolve correctly.
       // This is cursed but whatever.
       console.log('Preparing oxlint jsPlugins in', repoPath);
-      execFileSync('node', ['../../scripts/install-oxlint-plugins.js'], {
+      execFileSync('node', ['../../scripts/install-oxlint-plugins.mjs'], {
         cwd: repoPath,
         stdio: 'inherit',
         env: Object.assign({}, process.env, { MATRIX_COMMAND: commandWithBinary }),

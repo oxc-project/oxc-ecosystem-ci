@@ -1,0 +1,22 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      json-strip-comments:
+        specifier: ^1.0.4
+        version: 1.0.4
+
+packages:
+
+  json-strip-comments@1.0.4:
+    resolution: {integrity: sha512-FbP22SPKzQKGZn+/rk/NE8Js3l1oLFpm7mePfp5qvkLutjIJlMv6ZXzAmuTdw4/KLdZ+QEAIAf6am5X365D36A==}
+
+snapshots:
+
+  json-strip-comments@1.0.4: {}

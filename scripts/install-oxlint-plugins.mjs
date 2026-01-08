@@ -1,15 +1,11 @@
 #!/usr/bin/env node
 
-const fs = require("node:fs");
-const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { strip } from "json-strip-comments";
 
 const DEFAULT_CONFIG_FILES = [".oxlintrc.json"];
-
-// Remove block and line comments from the json config file so we can parse it (imperfect but yolo)
-function stripJsonComments(content) {
-  return content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-}
 
 /**
  * Read a config file and collect jsPlugins into the set.
@@ -34,7 +30,7 @@ function readConfigAndCollect(configPath, set) {
 
   try {
     let raw = fs.readFileSync(configPath, "utf8");
-    raw = stripJsonComments(raw);
+    raw = strip(raw);
     const obj = JSON.parse(raw);
     const arr = Array.isArray(obj.jsPlugins) ? obj.jsPlugins : [];
     for (const it of arr) {

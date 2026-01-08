@@ -159,11 +159,15 @@ jobs:
           persist-credentials: false
           show-progress: false
 
+      - name: pnpm install
+        run: pnpm install
+        working-directory: ${{ github.workspace }}/oxc-ecosystem-ci
+
       - name: Install oxlint jsPlugins
         working-directory: ${{ matrix.path }}
         env:
           MATRIX_COMMAND: ${{ matrix.command }}
-        run: node ${{ github.workspace }}/oxc-ecosystem-ci/scripts/install-oxlint-plugins.js
+        run: node ${{ github.workspace }}/oxc-ecosystem-ci/scripts/install-oxlint-plugins.mjs
 
       - name: Run
         working-directory: ${{ matrix.path }}
