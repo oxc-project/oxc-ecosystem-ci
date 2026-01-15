@@ -142,5 +142,11 @@
     "ref": "main",
     "path": "turborepo",
     "command": "oxlint"
+  },
+  {
+    "repository": "renovatebot/renovate",
+    "ref": "main",
+    "path": "renovate",
+    "command": "oxlint"
   }
 ]
