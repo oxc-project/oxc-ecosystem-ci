@@ -135,6 +135,89 @@ function filterInstallable(plugins) {
  */
 const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z0-9_-]+|@[A-Za-z0-9_-]+\/eslint-plugin(?:-[A-Za-z0-9_-]+)?)$/;
 
+// Attempt to find a built oxlint package and copy it into the target repo's node_modules as `oxlint`.
+function findBuiltOxlintSource() {
+  const tryPaths = [];
+  // Common locations used in CI artifacts/workflows relative to the repository being tested
+  // e.g. ../oxlint-package/npm/oxlint and ../oxlint-package/apps/oxlint/dist
+  let up = process.cwd();
+  for (let i = 0; i < 4; i++) {
+    tryPaths.push(path.join(up, 'oxlint-package'));
+    tryPaths.push(path.join(up, 'oxlint-install'));
+    up = path.dirname(up);
+  }
+
+  for (const base of tryPaths) {
+    const npmPkg = path.join(base, 'npm', 'oxlint', 'package.json');
+    const distDir = path.join(base, 'apps', 'oxlint', 'dist');
+    if (fs.existsSync(npmPkg) && fs.existsSync(distDir)) {
+      return { type: 'artifact', base, npmPkg, distDir };
+    }
+    // also allow copying from an oxlint-install layout
+    const altPkg = path.join(base, 'package.json');
+    const altDist = path.join(base, 'dist');
+    if (fs.existsSync(altPkg) && fs.existsSync(altDist)) {
+      return { type: 'install', base, npmPkg: altPkg, distDir: altDist };
+    }
+  }
+
+  // As a last resort, see if oxlint is installed globally and copy from there
+  try {
+    const r = spawnSync('npm', ['root', '-g'], { shell: false, stdio: ['ignore', 'pipe', 'inherit'] });
+    if (r && r.stdout) {
+      const globalRoot = r.stdout.toString().trim();
+      const globalPkg = path.join(globalRoot, 'oxlint');
+      const globalPkgJson = path.join(globalPkg, 'package.json');
+      const globalDist = path.join(globalPkg, 'dist');
+      if (fs.existsSync(globalPkgJson) && fs.existsSync(globalDist)) {
+        return { type: 'global', base: globalPkg, npmPkg: globalPkgJson, distDir: globalDist };
+      }
+    }
+  } catch (_err) {
+    // ignore
+  }
+
+  return null;
+}
+
+function copyBuiltOxlintIntoNodeModules(installDir) {
+  const dest = path.join(installDir, 'node_modules', 'oxlint');
+  if (fs.existsSync(dest)) {
+    console.log('`oxlint` already present in', dest);
+    return true;
+  }
+
+  const src = findBuiltOxlintSource();
+  if (!src) {
+    return false;
+  }
+
+  try {
+    fs.mkdirSync(dest, { recursive: true });
+    // copy package.json
+    const pkgJsonSrc = src.npmPkg;
+    if (fs.existsSync(pkgJsonSrc)) {
+      fs.copyFileSync(pkgJsonSrc, path.join(dest, 'package.json'));
+    }
+    // copy dist
+    if (fs.existsSync(src.distDir)) {
+      fs.cpSync(src.distDir, path.join(dest, 'dist'), { recursive: true, force: true });
+    }
+
+    // If there is a bin dir (from npm package bundle), copy it too
+    const binSrc = path.join(src.base, 'bin');
+    if (fs.existsSync(binSrc)) {
+      fs.cpSync(binSrc, path.join(dest, 'bin'), { recursive: true, force: true });
+    }
+
+    console.log('Copied built oxlint from', src.base, '=>', dest);
+    return true;
+  } catch (err) {
+    console.warn('Failed to copy built oxlint:', err && err.message);
+    return false;
+  }
+}
+
 /**
  * Install npm packages, we do this locally from the config file's directory.
  * @param {string[]} pkgs npm packages that will need to be installed for jsPlugins to work.
@@ -286,17 +369,27 @@ function main() {
   collectDefaultIfEmpty(set);
 
   const pkgs = filterInstallable(Array.from(set));
-  if (pkgs.length === 0) {
+  if (pkgs.length > 0) {
+    console.log("Attempting to install packages:", pkgs.join(", "));
+    try {
+      installPackages(pkgs);
+    } catch (e) {
+      console.error("Failed to install plugins:", e.message);
+      process.exit(1);
+    }
+  } else {
     console.log("No plugin packages to install.");
-    return;
   }
 
-  console.log("Attempting to install packages:", pkgs.join(", "));
+  // Always attempt to copy built oxlint into node_modules so local plugins can import it
   try {
-    installPackages(pkgs);
-  } catch (e) {
-    console.error("Failed to install plugins:", e.message);
-    process.exit(1);
+    if (copyBuiltOxlintIntoNodeModules(process.cwd())) {
+      console.log('Installed built `oxlint` into', path.join(process.cwd(), 'node_modules', 'oxlint'));
+    } else {
+      console.log('No built `oxlint` artifact found to install.');
+    }
+  } catch (err) {
+    console.warn('Could not install built oxlint:', err && err.message);
   }
 }
 
