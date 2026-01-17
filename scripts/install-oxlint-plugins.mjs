@@ -265,7 +265,7 @@ function installPackages(pkgs) {
     // Cleanup temporary dir
     try {
       fs.rmSync(tmpDir, { recursive: true, force: true });
-    } catch (err) {
+    } catch (_err) {
       // non-fatal
     }
 
