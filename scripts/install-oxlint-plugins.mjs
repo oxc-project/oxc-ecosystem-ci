@@ -131,6 +131,9 @@ function filterInstallable(plugins) {
  * - @foo-bar/eslint-plugin
  * - @foo-bar/eslint-plugin-name
  * - @foo-bar/eslint-plugin-name_with_underscores
+ *
+ * NOTE: Allow digits as well (previously digits were rejected which could
+ * incorrectly refuse valid plugin package names).
  */
 const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z0-9_-]+|@[A-Za-z0-9_-]+\/eslint-plugin(?:-[A-Za-z0-9_-]+)?)$/;
 
