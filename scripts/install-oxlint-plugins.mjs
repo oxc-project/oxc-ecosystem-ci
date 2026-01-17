@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import os from "node:os";
 import { strip } from "json-strip-comments";
 
 const DEFAULT_CONFIG_FILES = [".oxlintrc.json"];
@@ -159,19 +160,87 @@ function installPackages(pkgs) {
   console.log("Installing packages in", installDir, ":", pkgs.join(", "));
 
   // Using spawnSync with args array here to try to avoid shell interpretation.
-  // And `--ignore-scripts` to avoid running any install scripts from untrusted packages,
-  // but the CI job has very limited permissions anyway, so the damage that could be done
-  // here should be minimal, and it'd require a lot of work to actually exploit this in
-  // any way.
+  // Use stdio: 'pipe' so we can inspect the output and detect specific errors
+  // and still emit the logs to the console.
   const args = ['install', '--ignore-scripts', ...pkgs];
-  const res = spawnSync('npm', args, {
-    stdio: 'inherit', 
+  let res = spawnSync('npm', args, {
+    stdio: 'pipe', 
     shell: false,
     cwd: installDir // Install in the config file's directory
   });
 
+  // Emit logged output so CI shows the output even when we capture it
+  if (res.stdout && res.stdout.length > 0) {
+    process.stdout.write(res.stdout);
+  }
+  if (res.stderr && res.stderr.length > 0) {
+    process.stderr.write(res.stderr);
+  }
+
   if (res.error) {
-    throw res.error;
+    // If we got an error that indicates "workspace:" protocol is unsupported, fall back
+    // to installing in a temporary directory and copying node_modules into the repo.
+    if (res.error.code === 'EUNSUPPORTEDPROTOCOL' || (res.error.message && /workspace:/.test(res.error.message))) {
+      console.warn('npm reported unsupported workspace protocol, retrying install in temporary directory...');
+    } else {
+      throw res.error;
+    }
+  }
+
+  // If npm failed (non-zero) and stderr mentions "workspace:" or "EUNSUPPORTEDPROTOCOL", fallback
+  const stderrStr = res.stderr ? res.stderr.toString() : '';
+  const stdoutStr = res.stdout ? res.stdout.toString() : '';
+  if (res.status !== 0 && (/Unsupported URL Type "workspace"/i.test(stderrStr) || /workspace:/.test(stderrStr) || /EUNSUPPORTEDPROTOCOL/.test(stderrStr) || /workspace:/.test(stdoutStr))) {
+    // Fallback: install into a temporary directory without the repository package.json interfering,
+    // then copy the installed packages into the repo's node_modules.
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'install-oxlint-'));
+    console.log('Fallback: installing packages in temporary directory', tmpDir);
+
+    const tmpRes = spawnSync('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', ...pkgs], {
+      stdio: 'inherit',
+      shell: false,
+      cwd: tmpDir
+    });
+
+    if (tmpRes.error) {
+      throw tmpRes.error;
+    }
+    if (tmpRes.status !== 0) {
+      throw new Error(`Fallback npm install failed with code ${tmpRes.status}`);
+    }
+
+    // Copy installed package folders from tmpDir/node_modules to installDir/node_modules
+    const tmpNodeModules = path.join(tmpDir, 'node_modules');
+    const destNodeModules = path.join(installDir, 'node_modules');
+    fs.mkdirSync(destNodeModules, { recursive: true });
+
+    for (const pkg of pkgs) {
+      const parts = pkg.split('/');
+      const src = path.join(tmpNodeModules, ...parts);
+      const dest = path.join(destNodeModules, ...parts);
+
+      if (!fs.existsSync(src)) {
+        // If a scoped package is installed under a scope directory, ensure we attempt the correct path
+        // (though the above should already handle scoped names because split preserves the scope)
+        console.warn('Expected package not found in temporary install:', pkg);
+        continue;
+      }
+
+      // Ensure parent directory exists
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      console.log('Copying', src, '=>', dest);
+      fs.cpSync(src, dest, { recursive: true });
+    }
+
+    // Cleanup temporary dir
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch (err) {
+      // non-fatal
+    }
+
+    console.log('Fallback install succeeded and packages copied into', destNodeModules);
+    return;
   }
 
   if (res.status !== 0) {
