@@ -131,8 +131,11 @@ function filterInstallable(plugins) {
  * - @foo-bar/eslint-plugin
  * - @foo-bar/eslint-plugin-name
  * - @foo-bar/eslint-plugin-name_with_underscores
+ *
+ * NOTE: Allow digits as well (previously digits were rejected which could
+ * incorrectly refuse valid plugin package names).
  */
-const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z_-]+|@[A-Za-z_-]+\/eslint-plugin(?:-[A-Za-z_-]+)?)$/;
+const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z0-9_-]+|@[A-Za-z0-9_-]+\/eslint-plugin(?:-[A-Za-z0-9_-]+)?)$/;
 
 /**
  * Install npm packages, we do this locally from the config file's directory.
@@ -145,9 +148,11 @@ function installPackages(pkgs) {
   }
 
   // Validate that all package names are in the expected format.
-  // Throw an error if there are any invalid or unsafe package names.
-  if (!pkgs.every(p => PACKAGE_REGEX.test(p))) {
-    throw new Error('Refusing to install invalid or unsafe package names.');
+  // Throw an error if there are any invalid or unsafe package names and list them
+  // so it's easier to debug failures from CI logs.
+  const invalidPkgs = pkgs.filter(p => !PACKAGE_REGEX.test(p));
+  if (invalidPkgs.length > 0) {
+    throw new Error('Refusing to install invalid or unsafe package names: ' + invalidPkgs.join(', '));
   }
 
   // Determine installation directory from config file location
