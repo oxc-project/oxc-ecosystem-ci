@@ -196,7 +196,45 @@ function installPackages(pkgs) {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'install-oxlint-'));
     console.log('Fallback: installing packages in temporary directory', tmpDir);
 
-    const tmpRes = spawnSync('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', ...pkgs], {
+    // Collect peer dependencies for the requested plugins so the fallback install
+    // includes them (many plugins declare peers that are required at runtime).
+    function collectPeerDepsSync(requestedPkgs) {
+      const peerSet = new Set();
+      for (const p of requestedPkgs) {
+        try {
+          const r = spawnSync('npm', ['view', p, 'peerDependencies', '--json'], {
+            stdio: ['ignore', 'pipe', 'inherit'],
+            shell: false
+          });
+          if (r.status !== 0 || !r.stdout) {
+            continue;
+          }
+          const out = r.stdout.toString().trim();
+          if (!out || out === 'null') continue;
+          const obj = JSON.parse(out);
+          if (obj && typeof obj === 'object') {
+            for (const k of Object.keys(obj)) {
+              // ignore peer deps that are workspace: specifiers or look unsafe
+              if (typeof k === 'string' && k.length > 0) {
+                peerSet.add(k);
+              }
+            }
+          }
+        } catch (err) {
+          // non-fatal, warn and continue
+          console.warn('Could not fetch peerDependencies for', p, ':', err && err.message);
+        }
+      }
+      return Array.from(peerSet);
+    }
+
+    const peerDeps = collectPeerDepsSync(pkgs);
+    const installList = Array.from(new Set([...pkgs, ...peerDeps]));
+    if (peerDeps.length > 0) {
+      console.log('Including peerDependencies in fallback install:', peerDeps.join(', '));
+    }
+
+    const tmpRes = spawnSync('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', ...installList], {
       stdio: 'inherit',
       shell: false,
       cwd: tmpDir
