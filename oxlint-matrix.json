@@ -21,7 +21,7 @@
     "repository": "preactjs/preact",
     "ref": "main",
     "path": "preact",
-    "command": "oxlint --deny-warnings -c oxlint.json src test/browser test/node test/shared debug compat hooks test-utils"
+    "command": "oxlint --deny-warnings src test/browser test/node test/shared debug compat hooks test-utils"
   },
   {
     "repository": "microsoft/vscode",
