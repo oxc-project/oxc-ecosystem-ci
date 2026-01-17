@@ -209,27 +209,19 @@ function installPackages(pkgs) {
       throw new Error(`Fallback npm install failed with code ${tmpRes.status}`);
     }
 
-    // Copy installed package folders from tmpDir/node_modules to installDir/node_modules
+    // Copy all installed packages (including transitive dependencies) from tmpDir/node_modules
+    // to installDir/node_modules so plugins can find their deps (like @typescript-eslint/utils).
     const tmpNodeModules = path.join(tmpDir, 'node_modules');
     const destNodeModules = path.join(installDir, 'node_modules');
     fs.mkdirSync(destNodeModules, { recursive: true });
 
-    for (const pkg of pkgs) {
-      const parts = pkg.split('/');
-      const src = path.join(tmpNodeModules, ...parts);
-      const dest = path.join(destNodeModules, ...parts);
-
-      if (!fs.existsSync(src)) {
-        // If a scoped package is installed under a scope directory, ensure we attempt the correct path
-        // (though the above should already handle scoped names because split preserves the scope)
-        console.warn('Expected package not found in temporary install:', pkg);
-        continue;
-      }
-
-      // Ensure parent directory exists
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      console.log('Copying', src, '=>', dest);
-      fs.cpSync(src, dest, { recursive: true });
+    if (fs.existsSync(tmpNodeModules)) {
+      console.log('Copying installed node_modules from', tmpNodeModules, '=>', destNodeModules);
+      // Merge the temporary node_modules into the destination. Do not force overwrite existing files so
+      // we avoid clobbering repository-installed packages; copying is recursive.
+      fs.cpSync(tmpNodeModules, destNodeModules, { recursive: true, force: false });
+    } else {
+      console.warn('Temporary install did not produce a node_modules directory:', tmpNodeModules);
     }
 
     // Cleanup temporary dir
