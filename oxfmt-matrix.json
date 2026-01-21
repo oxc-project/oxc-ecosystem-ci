@@ -69,7 +69,7 @@
     "repository": "huggingface/huggingface.js",
     "ref": "main",
     "path": "huggingface.js",
-    "command": "oxfmt package.json .vscode .eslintrc.cjs e2e .github *.md .devcontainer .oxfmtrc.json && oxfmt ./packages"
+    "command": "oxfmt package.json .vscode .eslintrc.cjs e2e /.github *.md .devcontainer .oxfmtrc.json && for pkg in $(grep -l 'oxfmt' packages/*/package.json | xargs -n1 dirname); do (cd \"$pkg\" && pnpm format); done"
   },
   {
     "repository": "rolldown/rolldown",
