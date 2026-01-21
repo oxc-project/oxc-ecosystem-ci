@@ -58,5 +58,29 @@
     "ref": "main",
     "path": "turborepo",
     "command": "oxfmt"
+  },
+  {
+    "repository": "vuejs/pinia",
+    "ref": "v3",
+    "path": "pinia",
+    "command": "oxfmt"
+  },
+  {
+    "repository": "huggingface/huggingface.js",
+    "ref": "main",
+    "path": "huggingface.js",
+    "command": "oxfmt"
+  },
+  {
+    "repository": "rolldown/rolldown",
+    "ref": "main",
+    "path": "rolldown",
+    "command": "oxfmt"
+  },
+  {
+    "repository": "tale/headplane",
+    "ref": "main",
+    "path": "headplane",
+    "command": "oxfmt"
   }
 ]
