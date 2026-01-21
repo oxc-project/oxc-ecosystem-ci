@@ -69,7 +69,7 @@
     "repository": "huggingface/huggingface.js",
     "ref": "main",
     "path": "huggingface.js",
-    "command": "oxfmt"
+    "command": "oxfmt package.json .vscode .eslintrc.cjs e2e .github *.md .devcontainer .oxfmtrc.json && oxfmt ./packages"
   },
   {
     "repository": "rolldown/rolldown",
