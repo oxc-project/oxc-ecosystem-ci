@@ -82,5 +82,29 @@
     "ref": "main",
     "path": "headplane",
     "command": "oxfmt"
+  },
+  {
+    "repository": "Comfy-Org/ComfyUI_frontend",
+    "ref": "main",
+    "path": "ComfyUI_frontend",
+    "command": "oxfmt"
+  },
+  {
+    "repository": "aidenybai/react-grab",
+    "ref": "main",
+    "path": "react-grab",
+    "command": "oxfmt"
+  },
+  {
+    "repository": "dyad-sh/dyad",
+    "ref": "main",
+    "path": "dyad",
+    "command": "oxfmt"
+  },
+  {
+    "repository": "lichess-org/lila",
+    "ref": "master",
+    "path": "lila",
+    "command": "oxfmt"
   }
 ]
