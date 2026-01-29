@@ -105,6 +105,6 @@
     "repository": "lichess-org/lila",
     "ref": "master",
     "path": "lila",
-    "command": "oxfmt"
+    "command": "oxfmt --config=ui/.oxfmtrc.json ui"
   }
 ]
