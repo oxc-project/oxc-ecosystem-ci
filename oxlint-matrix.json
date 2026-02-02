@@ -148,5 +148,11 @@
     "ref": "main",
     "path": "renovate",
     "command": "oxlint"
+  },
+  {
+    "repository": "npmx-dev/npmx.dev",
+    "ref": "main",
+    "path": "npmx",
+    "command": "oxlint"
   }
 ]
