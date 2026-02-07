@@ -118,5 +118,11 @@
     "ref": "main",
     "path": "npmx",
     "command": "oxfmt"
+  },
+  {
+    "repository": "openclaw/openclaw",
+    "ref": "main",
+    "path": "openclaw",
+    "command": "oxfmt"
   }
 ]
