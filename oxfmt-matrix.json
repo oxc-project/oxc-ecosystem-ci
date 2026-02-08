@@ -102,12 +102,6 @@
     "command": "oxfmt"
   },
   {
-    "repository": "openclaw/openclaw",
-    "ref": "main",
-    "path": "openclaw",
-    "command": "oxfmt src test"
-  },
-  {
     "repository": "lichess-org/lila",
     "ref": "master",
     "path": "lila",
