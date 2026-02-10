@@ -203,7 +203,7 @@ jobs:
         run: |
           git diff > /tmp/main.diff
           if ! diff -q /tmp/latest.diff /tmp/main.diff > /dev/null 2>&1; then
-            echo "$(oxfmt --version) (main branch) differs from oxfmt@latest:"
+            echo "$(oxfmt --version) (${{ inputs.ref || 'main' }} branch) differs from oxfmt@latest:"
             diff /tmp/latest.diff /tmp/main.diff || true
             exit 1
           fi
@@ -225,6 +225,8 @@ jobs:
     steps:
       - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         id: script
+        env:
+          INPUT_REF: ${{ inputs.ref || 'main' }}
         with:
           github-token: ${{ secrets.OXC_BOT_PAT }}
           result-encoding: string
@@ -261,9 +263,10 @@ jobs:
               });
             const url = `${context.serverUrl}//${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const urlLink = `[Open](${url})`;
+            const ref = process.env.INPUT_REF || "main";
             const body = `
             ## [Oxfmt Ecosystem CI](${urlLink})
-            | suite | oxfmt@latest | main branch |
+            | suite | oxfmt@latest | ${ref} branch |
             |-------|:---:|:---:|
             ${result.map((r) => `| [${r.suite}](${r.link}) | ${r.latest} | ${r.main} |`).join("\n")}
             `;
