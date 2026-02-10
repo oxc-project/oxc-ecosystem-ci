@@ -232,7 +232,7 @@ jobs:
               success: ":white_check_mark:",
               failure: ":x:",
               cancelled: ":stop_button:",
-              skipped: ":next_track_button:",
+              skipped: ":white_check_mark:",
             };
             const stepConclusion = (job, stepName) => {
               const step = job.steps?.find((s) => s.name === stepName);
