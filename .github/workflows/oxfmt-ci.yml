@@ -134,8 +134,35 @@ jobs:
         with:
           version: 10
 
-      # --- Phase 1: main branch oxfmt ---
+      # --- Phase 1: oxfmt@latest (informational, never fails the job) ---
+      - name: Install oxfmt@latest
+        run: npm install -g oxfmt@latest
+        continue-on-error: true
+
+      - name: Run oxfmt@latest
+        working-directory: ${{ matrix.path }}
+        run: ${{ matrix.command }}
+        continue-on-error: true
+
+      - name: Check diff (oxfmt@latest vs repo)
+        id: check-latest
+        continue-on-error: true
+        working-directory: ${{ matrix.path }}
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "$(oxfmt --version) (latest) produces diff from repo."
+            ver=$(grep '"oxfmt":' package.json 2>/dev/null || echo "not found")
+            if echo "$ver" | grep -q 'catalog:'; then
+              echo "Repo's oxfmt version: $(grep 'oxfmt:' pnpm-workspace.* 2>/dev/null)"
+            else
+              echo "Repo's oxfmt version: $ver"
+            fi
+            exit 1
+          fi
+
+      # --- Phase 2: main branch oxfmt (always runs) ---
       - name: Install oxfmt (main branch)
+        if: always()
         run: |
           # Create package structure
           # ```
@@ -155,33 +182,23 @@ jobs:
           npm install -g ./oxfmt-install
 
       - name: Run oxfmt (main branch)
+        if: always()
         working-directory: ${{ matrix.path }}
         run: ${{ matrix.command }}
 
-      - name: Diff (main branch vs repo)
+      - name: Check diff (main branch vs repo)
+        if: always()
         working-directory: ${{ matrix.path }}
         run: |
           if [ -n "$(git status --porcelain)" ]; then
-            echo "Main branch oxfmt produces diff from repo:"
+            echo "$(oxfmt --version) (main branch) produces diff from repo."
             git --no-pager diff
             exit 1
           fi
 
-      # --- Phase 2: oxfmt@latest (only runs if Phase 1 passed) ---
-      - name: Install oxfmt@latest
-        run: npm install -g oxfmt@latest
-
-      - name: Run oxfmt@latest
-        working-directory: ${{ matrix.path }}
-        run: ${{ matrix.command }}
-
-      - name: Diff (oxfmt@latest vs repo)
-        working-directory: ${{ matrix.path }}
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "oxfmt@latest ($(oxfmt --version)) produces diff from repo."
-            exit 1
-          fi
+      - name: Fail if oxfmt@latest differs from repo
+        if: steps.check-latest.outcome == 'failure'
+        run: exit 1
 
   comment:
     needs: test
