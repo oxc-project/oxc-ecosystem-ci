@@ -158,6 +158,7 @@ jobs:
             else
               echo "Repo's oxfmt version: $ver"
             fi
+            git --no-pager diff
             exit 1
           fi
 
