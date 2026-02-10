@@ -192,16 +192,11 @@ jobs:
         working-directory: ${{ matrix.path }}
         run: |
           git diff > /tmp/main.diff
-          main_ok=true
           if ! diff -q /tmp/latest.diff /tmp/main.diff > /dev/null 2>&1; then
             echo "$(oxfmt --version) (main branch) differs from oxfmt@latest:"
             diff /tmp/latest.diff /tmp/main.diff || true
-            main_ok=false
+            exit 1
           fi
-          latest_emoji=${{ steps.check-latest.outcome == 'failure' && '❌' || '✅' }}
-          main_emoji=$($main_ok && echo '✅' || echo '❌')
-          echo "| ${{ matrix.repository }} | ${latest_emoji} | ${main_emoji} |" >> "$GITHUB_STEP_SUMMARY"
-          $main_ok || exit 1
 
       - name: Fail if oxfmt@latest differs from repo
         if: steps.check-latest.outcome == 'failure'
