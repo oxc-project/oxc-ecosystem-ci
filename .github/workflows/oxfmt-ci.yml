@@ -245,8 +245,7 @@ jobs:
                 const suite = job.name.slice(5);
                 return {
                   suite,
-                  conclusion: job.conclusion,
-                  latest: stepConclusion(job, "Check diff (oxfmt@latest vs repo)"),
+                  latest: stepConclusion(job, "Fail if oxfmt@latest differs from repo"),
                   main: stepConclusion(job, "Check diff (main branch vs oxfmt@latest)"),
                   link: job.html_url,
                 };
@@ -255,9 +254,9 @@ jobs:
             const urlLink = `[Open](${url})`;
             const body = `
             ## [Oxfmt Ecosystem CI](${urlLink})
-            | suite | oxfmt@latest | main branch | result |
-            |-------|:---:|:---:|:---:|
-            ${result.map((r) => `| [${r.suite}](${r.link}) | ${r.latest} | ${r.main} | ${emoji[r.conclusion] ?? ":grey_question:"} |`).join("\n")}
+            | suite | oxfmt@latest | main branch |
+            |-------|:---:|:---:|
+            ${result.map((r) => `| [${r.suite}](${r.link}) | ${r.latest} | ${r.main} |`).join("\n")}
             `;
             await core.summary.addRaw(body).write();
             return body;
