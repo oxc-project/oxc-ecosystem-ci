@@ -163,6 +163,10 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             echo "Code is not properly formatted. See the diff below:";
             git --no-pager diff;
+
+            echo "Their oxfmt version:";
+            ver=$(grep '"oxfmt":' package.json);
+            if echo "$ver" | grep -q 'catalog:'; then grep 'oxfmt:' pnpm-workspace.*; else echo "$ver"; fi;
             exit 1;
           else
             echo "Code is properly formatted.";
