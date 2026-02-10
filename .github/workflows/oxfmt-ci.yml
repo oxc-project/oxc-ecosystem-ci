@@ -134,7 +134,46 @@ jobs:
         with:
           version: 10
 
-      - name: Install oxfmt globally
+      # --- Phase 1: oxfmt@latest (informational, never fails the job) ---
+      - name: Install oxfmt@latest
+        id: install-latest
+        run: npm install -g oxfmt@latest
+        continue-on-error: true
+
+      - name: Run oxfmt@latest
+        if: steps.install-latest.outcome == 'success'
+        working-directory: ${{ matrix.path }}
+        run: ${{ matrix.command }}
+        continue-on-error: true
+
+      - name: Check diff (oxfmt@latest vs repo)
+        id: check-latest
+        if: steps.install-latest.outcome == 'success'
+        continue-on-error: true
+        working-directory: ${{ matrix.path }}
+        run: |
+          git diff > /tmp/latest.diff
+          if [ -s /tmp/latest.diff ]; then
+            echo "$(oxfmt --version) (latest) produces diff from repo."
+            ver=$(grep '"oxfmt":' package.json 2>/dev/null || echo "not found")
+            if echo "$ver" | grep -q 'catalog:'; then
+              echo "Repo's oxfmt version: $(grep 'oxfmt:' pnpm-workspace.* 2>/dev/null)"
+            else
+              echo "Repo's oxfmt version: $ver"
+            fi
+            git --no-pager diff
+            exit 1
+          fi
+
+      # Reset working tree so Phase 2 starts from the original repo state
+      - name: Reset working tree
+        if: ${{ !cancelled() }}
+        working-directory: ${{ matrix.path }}
+        run: git checkout -- .
+
+      # --- Phase 2: main branch oxfmt (always runs unless cancelled) ---
+      - name: Install oxfmt (main branch)
+        if: ${{ !cancelled() }}
         run: |
           # Create package structure
           # ```
@@ -153,24 +192,27 @@ jobs:
           # Install globally
           npm install -g ./oxfmt-install
 
-      - name: Run oxfmt
+      - name: Run oxfmt (main branch)
+        if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
         run: ${{ matrix.command }}
 
-      - name: Check diff
+      - name: Check diff (main branch vs oxfmt@latest)
+        if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Code is not properly formatted. See the diff below:";
-            git --no-pager diff;
-
-            echo "Their oxfmt version:";
-            ver=$(grep '"oxfmt":' package.json);
-            if echo "$ver" | grep -q 'catalog:'; then grep 'oxfmt:' pnpm-workspace.*; else echo "$ver"; fi;
-            exit 1;
-          else
-            echo "Code is properly formatted.";
+          git diff > /tmp/main.diff
+          if ! diff -q /tmp/latest.diff /tmp/main.diff > /dev/null 2>&1; then
+            echo "$(oxfmt --version) (main branch) differs from oxfmt@latest:"
+            diff /tmp/latest.diff /tmp/main.diff || true
+            exit 1
           fi
+
+      - name: Fail if oxfmt@latest differs from repo
+        if: steps.check-latest.outcome == 'failure'
+        run: |
+          echo "Failing because oxfmt@latest produced a diff from the repo (see Phase 1 above)."
+          exit 1
 
   comment:
     needs: test
@@ -183,7 +225,6 @@ jobs:
     steps:
       - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         id: script
-        if: ${{ inputs.issue-number }}
         with:
           github-token: ${{ secrets.OXC_BOT_PAT }}
           result-encoding: string
@@ -196,25 +237,37 @@ jobs:
               run_id: context.runId,
               per_page: 100,
             });
+            const emoji = {
+              success: ":white_check_mark:",
+              failure: ":x:",
+              cancelled: ":stop_button:",
+              skipped: ":white_check_mark:",
+            };
+            const stepConclusion = (job, stepName) => {
+              const step = job.steps?.find((s) => s.name === stepName);
+              if (!step) return emoji.skipped;
+              return emoji[step.conclusion] ?? `:grey_question:`;
+            };
             let result = jobs
               .filter((job) => job.name.startsWith("Test "))
               .map((job) => {
                 const suite = job.name.slice(5);
-                return { suite, conclusion: job.conclusion, link: job.html_url };
+                return {
+                  suite,
+                  latest: stepConclusion(job, "Fail if oxfmt@latest differs from repo"),
+                  main: stepConclusion(job, "Check diff (main branch vs oxfmt@latest)"),
+                  link: job.html_url,
+                };
               });
             const url = `${context.serverUrl}//${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const urlLink = `[Open](${url})`;
-            const conclusionEmoji = {
-              success: ":white_check_mark:",
-              failure: ":x:",
-              cancelled: ":stop_button:",
-            };
             const body = `
             ## [Oxfmt Ecosystem CI](${urlLink})
-            | suite | result |
-            |-------|--------|
-            ${result.map((r) => `| [${r.suite}](${r.link}) | ${conclusionEmoji[r.conclusion]} |`).join("\n")}
+            | suite | oxfmt@latest | main branch |
+            |-------|:---:|:---:|
+            ${result.map((r) => `| [${r.suite}](${r.link}) | ${r.latest} | ${r.main} |`).join("\n")}
             `;
+            await core.summary.addRaw(body).write();
             return body;
 
       - uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
