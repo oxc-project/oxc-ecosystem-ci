@@ -211,7 +211,6 @@ jobs:
     steps:
       - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         id: script
-        if: ${{ inputs.issue-number }}
         with:
           github-token: ${{ secrets.OXC_BOT_PAT }}
           result-encoding: string
@@ -224,25 +223,38 @@ jobs:
               run_id: context.runId,
               per_page: 100,
             });
+            const emoji = {
+              success: ":white_check_mark:",
+              failure: ":x:",
+              cancelled: ":stop_button:",
+              skipped: ":next_track_button:",
+            };
+            const stepConclusion = (job, stepName) => {
+              const step = job.steps?.find((s) => s.name === stepName);
+              if (!step) return emoji.skipped;
+              return emoji[step.conclusion] ?? `:grey_question:`;
+            };
             let result = jobs
               .filter((job) => job.name.startsWith("Test "))
               .map((job) => {
                 const suite = job.name.slice(5);
-                return { suite, conclusion: job.conclusion, link: job.html_url };
+                return {
+                  suite,
+                  conclusion: job.conclusion,
+                  latest: stepConclusion(job, "Check diff (oxfmt@latest vs repo)"),
+                  main: stepConclusion(job, "Check diff (main branch vs repo)"),
+                  link: job.html_url,
+                };
               });
             const url = `${context.serverUrl}//${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const urlLink = `[Open](${url})`;
-            const conclusionEmoji = {
-              success: ":white_check_mark:",
-              failure: ":x:",
-              cancelled: ":stop_button:",
-            };
             const body = `
             ## [Oxfmt Ecosystem CI](${urlLink})
-            | suite | result |
-            |-------|--------|
-            ${result.map((r) => `| [${r.suite}](${r.link}) | ${conclusionEmoji[r.conclusion]} |`).join("\n")}
+            | suite | oxfmt@latest | main branch | result |
+            |-------|:---:|:---:|:---:|
+            ${result.map((r) => `| [${r.suite}](${r.link}) | ${r.latest} | ${r.main} | ${emoji[r.conclusion] ?? ":grey_question:"} |`).join("\n")}
             `;
+            await core.summary.addRaw(body).write();
             return body;
 
       - uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
