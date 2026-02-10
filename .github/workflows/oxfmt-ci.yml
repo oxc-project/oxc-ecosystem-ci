@@ -149,7 +149,8 @@ jobs:
         continue-on-error: true
         working-directory: ${{ matrix.path }}
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
+          git diff > /tmp/latest.diff
+          if [ -s /tmp/latest.diff ]; then
             echo "$(oxfmt --version) (latest) produces diff from repo."
             ver=$(grep '"oxfmt":' package.json 2>/dev/null || echo "not found")
             if echo "$ver" | grep -q 'catalog:'; then
@@ -186,13 +187,14 @@ jobs:
         working-directory: ${{ matrix.path }}
         run: ${{ matrix.command }}
 
-      - name: Check diff (main branch vs repo)
+      - name: Check diff (main branch vs oxfmt@latest)
         if: always()
         working-directory: ${{ matrix.path }}
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "$(oxfmt --version) (main branch) produces diff from repo."
-            git --no-pager diff
+          git diff > /tmp/main.diff
+          if ! diff -q /tmp/latest.diff /tmp/main.diff > /dev/null 2>&1; then
+            echo "$(oxfmt --version) (main branch) differs from oxfmt@latest:"
+            diff /tmp/latest.diff /tmp/main.diff || true
             exit 1
           fi
 
@@ -242,7 +244,7 @@ jobs:
                   suite,
                   conclusion: job.conclusion,
                   latest: stepConclusion(job, "Check diff (oxfmt@latest vs repo)"),
-                  main: stepConclusion(job, "Check diff (main branch vs repo)"),
+                  main: stepConclusion(job, "Check diff (main branch vs oxfmt@latest)"),
                   link: job.html_url,
                 };
               });
