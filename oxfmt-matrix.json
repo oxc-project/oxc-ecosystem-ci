@@ -105,7 +105,7 @@
     "repository": "lichess-org/lila",
     "ref": "master",
     "path": "lila",
-    "command": "oxfmt --config=ui/.oxfmtrc.json ui"
+    "command": "oxfmt"
   },
   {
     "repository": "npmx-dev/npmx.dev",
