@@ -118,5 +118,11 @@
     "ref": "main",
     "path": "openclaw",
     "command": "oxfmt"
+  },
+  {
+    "repository": "getsentry/sentry-javascript",
+    "ref": "develop",
+    "path": "sentry-javascript",
+    "command": "oxfmt"
   }
 ]
