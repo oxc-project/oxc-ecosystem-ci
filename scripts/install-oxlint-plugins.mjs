@@ -81,6 +81,22 @@ function collectDefaultIfEmpty(set) {
 }
 
 /**
+ * If any relative-path plugin files are listed in `rawSet`, add `@oxlint/plugins`
+ * to `installSet` since local oxlint JS plugins require it.
+ *
+ * @param {Set<string>} rawSet All values collected from jsPlugins (including relative paths)
+ * @param {Set<string>} installSet Set to add detected npm packages to
+ */
+function collectFromLocalPlugins(rawSet, installSet) {
+  for (const s of rawSet) {
+    if (typeof s !== 'string') continue;
+    if (!s.startsWith('./') && !s.startsWith('../')) continue;
+    installSet.add('@oxlint/plugins');
+    return;
+  }
+}
+
+/**
  * Install only valid plugin packages, we don't want/need to install packages
  * from relative paths and we don't want any non-plugin packages to be
  * installed if we can avoid it.
@@ -120,6 +136,11 @@ function filterInstallable(plugins) {
       return true;
     }
 
+    // Allow @oxlint/plugins (used as a peer dependency by local oxlint JS plugins)
+    if (s === '@oxlint/plugins') {
+      return true;
+    }
+
     return false;
   });
 }
@@ -132,8 +153,9 @@ function filterInstallable(plugins) {
  * - @foo-bar/eslint-plugin
  * - @foo-bar/eslint-plugin-name
  * - @foo-bar/eslint-plugin-name_with_underscores
+ * - @oxlint/plugins
  */
-const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z0-9_-]+|@[A-Za-z0-9_-]+\/eslint-plugin(?:-[A-Za-z0-9_-]+)?)$/;
+const PACKAGE_REGEX = /^(?:eslint-plugin-[A-Za-z0-9_-]+|@[A-Za-z0-9_-]+\/eslint-plugin(?:-[A-Za-z0-9_-]+)?|@oxlint\/plugins)$/;
 
 // Attempt to find a built oxlint package and copy it into the target repo's node_modules as `oxlint`.
 function findBuiltOxlintSource() {
@@ -367,6 +389,9 @@ function main() {
 
   collectFromCommand(cmd, set);
   collectDefaultIfEmpty(set);
+
+  // Scan local (relative-path) plugin files for @oxlint/plugins imports
+  collectFromLocalPlugins(set, set);
 
   const pkgs = filterInstallable(Array.from(set));
   if (pkgs.length > 0) {
