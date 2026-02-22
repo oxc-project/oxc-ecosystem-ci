@@ -163,7 +163,7 @@ jobs:
         run: pnpm install
         working-directory: ${{ github.workspace }}/oxc-ecosystem-ci
 
-      - name: Install oxlint jsPlugins
+      - name: Install dependencies for jsPlugins
         working-directory: ${{ matrix.path }}
         env:
           MATRIX_COMMAND: ${{ matrix.command }}
