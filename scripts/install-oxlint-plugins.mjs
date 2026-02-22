@@ -93,62 +93,17 @@ function detectPackageManager(dir) {
 }
 
 /**
- * Remove `oxlint` from package.json dependencies so the repo's install
- * doesn't conflict with our manually-built version.
- *
- * @param {string} dir
- * @returns {boolean} Whether package.json was modified
- */
-function removeOxlintFromPackageJson(dir) {
-  const pkgPath = path.join(dir, 'package.json');
-  if (!fs.existsSync(pkgPath)) return false;
-
-  try {
-    const raw = fs.readFileSync(pkgPath, 'utf8');
-    const pkg = JSON.parse(raw);
-    let modified = false;
-
-    for (const depType of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
-      if (pkg[depType] && pkg[depType]['oxlint']) {
-        console.log(`Removing oxlint from ${depType} in ${pkgPath}`);
-        delete pkg[depType]['oxlint'];
-        modified = true;
-      }
-    }
-
-    if (modified) {
-      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
-    }
-
-    return modified;
-  } catch (e) {
-    console.warn('Could not process package.json:', e.message);
-    return false;
-  }
-}
-
-/**
  * Run the repo's package manager install.
  *
  * @param {string} dir
- * @param {boolean} pkgJsonModified Whether package.json was modified (affects lockfile flags)
  */
-function runInstall(dir, pkgJsonModified) {
+function runInstall(dir) {
   const pm = detectPackageManager(dir);
   console.log(`Detected package manager: ${pm}`);
 
-  const args = ['install'];
+  console.log(`Running: ${pm} install in ${dir}`);
 
-  // If we modified package.json (removed oxlint), tell the package manager
-  // not to error on lockfile mismatch.
-  if (pkgJsonModified) {
-    if (pm === 'pnpm') args.push('--no-frozen-lockfile');
-    if (pm === 'yarn') args.push('--no-immutable');
-  }
-
-  console.log(`Running: ${pm} ${args.join(' ')} in ${dir}`);
-
-  const res = spawnSync(pm, args, {
+  const res = spawnSync(pm, ['install'], {
     stdio: 'inherit',
     cwd: dir,
     shell: false,
@@ -265,14 +220,10 @@ function main() {
 
   const dir = process.cwd();
 
-  // Remove oxlint from package.json so the install doesn't conflict
-  // with our manually-built version.
-  const pkgJsonModified = removeOxlintFromPackageJson(dir);
-
   // Run the repo's package manager install to get all dependencies,
   // including any JS plugin packages.
   try {
-    runInstall(dir, pkgJsonModified);
+    runInstall(dir);
   } catch (e) {
     console.error("Install failed:", e.message);
     process.exit(1);
