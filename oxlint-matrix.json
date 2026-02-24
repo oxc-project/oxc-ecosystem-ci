@@ -154,5 +154,11 @@
     "ref": "main",
     "path": "npmx",
     "command": "oxlint"
+  },
+  {
+    "repository": "matter-js/matter.js",
+    "ref": "main",
+    "path": "matter-js",
+    "command": "oxlint --tsconfig tsconfig.json examples packages support"
   }
 ]
