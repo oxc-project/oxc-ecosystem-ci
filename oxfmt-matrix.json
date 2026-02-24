@@ -124,5 +124,17 @@
     "ref": "develop",
     "path": "sentry-javascript",
     "command": "oxfmt"
+  },
+  {
+    "repository": "cloudflare/agents",
+    "ref": "main",
+    "path": "cf-agents",
+    "command": "oxfmt"
+  },
+  {
+    "repository": "mastodon/mastodon",
+    "ref": "main",
+    "path": "mastodon",
+    "command": "oxfmt"
   }
 ]

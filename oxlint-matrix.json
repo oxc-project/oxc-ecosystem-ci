@@ -160,5 +160,11 @@
     "ref": "main",
     "path": "matter-js",
     "command": "oxlint --tsconfig tsconfig.json examples packages support"
+  },
+  {
+    "repository": "cloudflare/agents",
+    "ref": "main",
+    "path": "cf-agents",
+    "command": "oxlint examples/ packages/ guides/ openai-sdk/ site/"
   }
 ]
