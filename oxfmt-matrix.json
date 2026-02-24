@@ -130,5 +130,11 @@
     "ref": "main",
     "path": "cf-agents",
     "command": "oxfmt"
+  },
+  {
+    "repository": "mastodon/mastodon",
+    "ref": "main",
+    "path": "mastodon",
+    "command": "oxfmt"
   }
 ]
