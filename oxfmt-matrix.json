@@ -124,5 +124,11 @@
     "ref": "develop",
     "path": "sentry-javascript",
     "command": "oxfmt"
+  },
+  {
+    "repository": "cloudflare/agents",
+    "ref": "main",
+    "path": "cf-agents",
+    "command": "oxfmt"
   }
 ]
