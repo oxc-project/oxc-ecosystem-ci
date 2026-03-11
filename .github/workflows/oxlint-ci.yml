@@ -59,7 +59,7 @@ jobs:
           persist-credentials: false
           show-progress: false
 
-      - uses: oxc-project/setup-rust@704e1648ce532a12b4d6fb98db0ba10afa3ae879 # v1.0.13
+      - uses: oxc-project/setup-rust@23f38cfb0c04af97a055f76acee94d5be71c7c82 # v1.0.16
         with:
           save-cache: ${{ github.ref_name == 'main' }}
 
