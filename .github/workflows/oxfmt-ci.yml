@@ -98,7 +98,7 @@ jobs:
       - uses: taiki-e/checkout-action@3ab630d442e198ebb0ca30872832406ca01c46eb # v1.4.0
 
       - id: setmatrix
-        uses: jaywcjlove/github-action-read-file@d7632d78b76cbfbe8841dc31dd08dd2020175c80 # main
+        uses: jaywcjlove/github-action-read-file@935d2b17432f2350fd155a3ccbd3f2934be9e410 # main
         with:
           localfile: ./oxfmt-matrix.json
 
