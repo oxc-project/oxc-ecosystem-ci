@@ -150,6 +150,9 @@ jobs:
           # Install globally
           npm install -g ./oxlint-install
 
+      - name: Install oxlint-tsgolint globally
+        run: npm install -g oxlint-tsgolint
+
       # Need to checkout oxc-ecosystem-ci to access install-oxlint-plugins.js
       - name: Checkout ecosystem repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
