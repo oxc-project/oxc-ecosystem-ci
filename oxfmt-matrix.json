@@ -36,12 +36,6 @@
     "command": "oxfmt"
   },
   {
-    "repository": "vuejs/core",
-    "ref": "minor",
-    "path": "vue",
-    "command": "oxfmt"
-  },
-  {
     "repository": "fuma-nama/fumadocs",
     "ref": "dev",
     "path": "fumadocs",
@@ -72,12 +66,6 @@
     "command": "oxfmt package.json .vscode .eslintrc.cjs e2e /.github *.md .devcontainer .oxfmtrc.json && for pkg in $(grep -l 'oxfmt' packages/*/package.json | xargs -n1 dirname); do (cd \"$pkg\" && oxfmt); done"
   },
   {
-    "repository": "rolldown/rolldown",
-    "ref": "main",
-    "path": "rolldown",
-    "command": "oxfmt"
-  },
-  {
     "repository": "tale/headplane",
     "ref": "main",
     "path": "headplane",
@@ -90,12 +78,6 @@
     "command": "oxfmt"
   },
   {
-    "repository": "aidenybai/react-grab",
-    "ref": "main",
-    "path": "react-grab",
-    "command": "oxfmt"
-  },
-  {
     "repository": "dyad-sh/dyad",
     "ref": "main",
     "path": "dyad",
@@ -105,12 +87,6 @@
     "repository": "lichess-org/lila",
     "ref": "master",
     "path": "lila",
-    "command": "oxfmt"
-  },
-  {
-    "repository": "npmx-dev/npmx.dev",
-    "ref": "main",
-    "path": "npmx",
     "command": "oxfmt"
   },
   {
@@ -136,5 +112,29 @@
     "ref": "main",
     "path": "mastodon",
     "command": "oxfmt"
+  },
+  {
+    "repository": "vuejs/core",
+    "ref": "minor",
+    "path": "vue",
+    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxfmt"
+  },
+  {
+    "repository": "npmx-dev/npmx.dev",
+    "ref": "main",
+    "path": "npmx",
+    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxfmt"
+  },
+  {
+    "repository": "aidenybai/react-grab",
+    "ref": "main",
+    "path": "react-grab",
+    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxfmt"
+  },
+  {
+    "repository": "rolldown/rolldown",
+    "ref": "main",
+    "path": "rolldown",
+    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxfmt"
   }
 ]
