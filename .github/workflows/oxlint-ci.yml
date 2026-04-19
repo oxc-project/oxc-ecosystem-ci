@@ -39,9 +39,19 @@ jobs:
       pull-requests: write
       contents: write
     steps:
+      - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: oxc-project
+          repositories: |
+            ${{ github.event.repository.name }}
+            oxc
+
       - uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         with:
-          token: ${{ secrets.OXC_BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
           repository: oxc-project/oxc
           issue-number: ${{ inputs.issue-number }}
           comment-id: ${{ inputs.comment-id }}
@@ -200,11 +210,21 @@ jobs:
       pull-requests: write
       contents: write
     steps:
+      - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: oxc-project
+          repositories: |
+            ${{ github.event.repository.name }}
+            oxc
+
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         id: script
         if: ${{ inputs.issue-number }}
         with:
-          github-token: ${{ secrets.OXC_BOT_PAT }}
+          github-token: ${{ steps.app-token.outputs.token }}
           result-encoding: string
           script: |
             const {
@@ -239,7 +259,7 @@ jobs:
       - uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         if: ${{ inputs.issue-number && inputs.comment-id }}
         with:
-          token: ${{ secrets.OXC_BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
           repository: oxc-project/oxc
           issue-number: ${{ inputs.issue-number }}
           comment-id: ${{ inputs.comment-id }}
