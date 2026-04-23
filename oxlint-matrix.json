@@ -27,7 +27,7 @@
     "repository": "microsoft/vscode",
     "ref": "main",
     "path": "vscode",
-    "command": "oxlint -W all --ignore-pattern '**/fixtures' --ignore-pattern 'test-*.ts' --silent"
+    "command": "oxlint -W all --ignore-pattern '**/fixtures' --ignore-pattern 'test-*.ts' --ignore-pattern 'extensions/copilot/test/scenarios/**' --silent"
   },
   {
     "repository": "calcom/cal.com",
