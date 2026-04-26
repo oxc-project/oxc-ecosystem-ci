@@ -3,7 +3,7 @@
     "repository": "rolldown/rolldown",
     "ref": "main",
     "path": "rolldown",
-    "command": "oxlint --deny-warnings -c .oxlintrc.json --ignore-path=.oxlintignore --import-plugin --jsdoc-plugin"
+    "command": "VP_VERSION=1 oxlint --deny-warnings --ignore-path=.oxlintignore --import-plugin --jsdoc-plugin"
   },
   {
     "repository": "napi-rs/napi-rs",
