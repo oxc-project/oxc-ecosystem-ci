@@ -93,6 +93,7 @@
     "repository": "monkeytypegame/monkeytype",
     "ref": "master",
     "path": "monkeytype",
+    "pnpm_config_engine_strict": "false",
     "command": "oxlint -c ./backend/.oxlintrc.json ./backend && oxlint -c ./frontend/.oxlintrc.json ./frontend"
   },
   {
