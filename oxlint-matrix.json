@@ -3,7 +3,7 @@
     "repository": "rolldown/rolldown",
     "ref": "main",
     "path": "rolldown",
-    "command": "VP_VERSION=1 oxlint --deny-warnings --ignore-path=.oxlintignore --import-plugin --jsdoc-plugin"
+    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxlint --deny-warnings --ignore-path=.oxlintignore --import-plugin --jsdoc-plugin"
   },
   {
     "repository": "napi-rs/napi-rs",
