@@ -151,6 +151,7 @@ jobs:
         continue-on-error: true
 
       - name: Run oxfmt@latest
+        id: run-latest
         if: steps.install-latest.outcome == 'success'
         working-directory: ${{ matrix.path }}
         run: ${{ matrix.command }}
@@ -203,9 +204,11 @@ jobs:
           npm install -g ./oxfmt-install
 
       - name: Run oxfmt (main branch)
+        id: run-main
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
         run: ${{ matrix.command }}
+        continue-on-error: true
 
       - name: Check diff (main branch vs oxfmt@latest)
         if: ${{ !cancelled() }}
@@ -219,6 +222,18 @@ jobs:
             diff /tmp/latest.diff /tmp/main.diff || true
             exit 1
           fi
+
+      - name: Fail if oxfmt@latest crashed
+        if: steps.run-latest.outcome == 'failure'
+        run: |
+          echo "Failing because oxfmt@latest crashed during execution (see Phase 1 above)."
+          exit 1
+
+      - name: Fail if oxfmt (main branch) crashed
+        if: ${{ !cancelled() && steps.run-main.outcome == 'failure' }}
+        run: |
+          echo "Failing because oxfmt (main branch) crashed during execution (see Phase 2 above)."
+          exit 1
 
       - name: Fail if oxfmt@latest differs from repo
         if: steps.check-latest.outcome == 'failure'
@@ -272,14 +287,19 @@ jobs:
               if (!step) return emoji.skipped;
               return emoji[step.conclusion] ?? `:grey_question:`;
             };
+            const phaseConclusion = (job, crashStep, diffStep) => {
+              const crash = job.steps?.find((s) => s.name === crashStep);
+              if (crash?.conclusion === "failure") return ":boom:";
+              return stepConclusion(job, diffStep);
+            };
             let result = jobs
               .filter((job) => job.name.startsWith("Test "))
               .map((job) => {
                 const suite = job.name.slice(5);
                 return {
                   suite,
-                  latest: stepConclusion(job, "Fail if oxfmt@latest differs from repo"),
-                  main: stepConclusion(job, "Check diff (main branch vs oxfmt@latest)"),
+                  latest: phaseConclusion(job, "Fail if oxfmt@latest crashed", "Fail if oxfmt@latest differs from repo"),
+                  main: phaseConclusion(job, "Fail if oxfmt (main branch) crashed", "Check diff (main branch vs oxfmt@latest)"),
                   link: job.html_url,
                 };
               });
