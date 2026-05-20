@@ -144,21 +144,13 @@ jobs:
         with:
           version: 11
 
-      - name: Install oxlint globally
-        run: |
-          # Create package structure
-          # ```
-          # oxlint-install
-          # |- package.json
-          # |- bin/oxlint
-          # |- dist/cli.js, *.node, etc
-          # ```
-          mkdir -p oxlint-install
-          cp oxlint-package/npm/oxlint/package.json oxlint-install/
-          cp -r oxlint-package/npm/oxlint/bin oxlint-install/
-          cp -r oxlint-package/apps/oxlint/dist oxlint-install/
-          # Install globally
-          npm install -g ./oxlint-install
+      # `setup` must run before any oxlint install so that deps provided by the target repo
+      # (e.g. `vite-plus` for Vite+ configs) end up in `node_modules/`, where they are
+      # reachable from oxlint's CLI via Node's upward `node_modules` lookup.
+      - name: Setup target repo
+        if: ${{ matrix.setup }}
+        working-directory: ${{ matrix.path }}
+        run: ${{ matrix.setup }}
 
       - name: Install oxlint-tsgolint globally
         run: npm install -g oxlint-tsgolint
@@ -182,6 +174,29 @@ jobs:
           MATRIX_COMMAND: ${{ matrix.command }}
           pnpm_config_engine_strict: ${{ matrix.pnpm_config_engine_strict || '' }}
         run: node ${{ github.workspace }}/oxc-ecosystem-ci/scripts/install-oxlint-plugins.mjs
+
+      # Add target repo's local bin to PATH so subsequent steps can invoke `oxlint` without a path prefix,
+      # even though it's installed locally rather than globally.
+      - name: Configure PATH for local oxlint
+        run: echo "$GITHUB_WORKSPACE/${{ matrix.path }}/node_modules/.bin" >> "$GITHUB_PATH"
+
+      # Install last so this is the authoritative `node_modules/oxlint`, overwriting whatever
+      # pnpm/script steps above placed there.
+      - name: Install oxlint
+        run: |
+          # `pnpm pack` does not work for `apps/oxlint` (`.node` ignored, no `bin` field),
+          # so we reconstruct the package layout manually from build artifacts.
+          mkdir -p oxlint-install
+          cp oxlint-package/npm/oxlint/package.json oxlint-install/
+          cp -r oxlint-package/npm/oxlint/bin oxlint-install/
+          cp -r oxlint-package/apps/oxlint/dist oxlint-install/
+          # `actions/upload-artifact` strips the POSIX executable bit, so restore it.
+          chmod +x oxlint-install/bin/oxlint
+          npm install --prefix oxlint-install --no-audit --no-fund
+          mkdir -p "${{ matrix.path }}/node_modules/.bin"
+          rm -rf "${{ matrix.path }}/node_modules/oxlint"
+          mv oxlint-install "${{ matrix.path }}/node_modules/oxlint"
+          ln -sf ../oxlint/bin/oxlint "${{ matrix.path }}/node_modules/.bin/oxlint"
 
       - name: Run
         working-directory: ${{ matrix.path }}

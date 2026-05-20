@@ -167,6 +167,14 @@ function findBuiltOxlintSource() {
 function copyBuiltOxlintIntoNodeModules(installDir) {
   const dest = path.join(installDir, 'node_modules', 'oxlint');
 
+  // If the workflow already staged oxlint locally with its own deps (`node_modules/`),
+  // do not overwrite it — the workflow's install has deps required by oxlint's CLI,
+  // and a plain copy here would lose them.
+  if (fs.existsSync(path.join(dest, 'dist')) && fs.existsSync(path.join(dest, 'node_modules'))) {
+    console.log('Built oxlint already installed with deps at', dest, '; skipping overwrite.');
+    return true;
+  }
+
   // Remove existing oxlint in node_modules so we always use our built version.
   if (fs.existsSync(dest)) {
     console.log('Removing existing oxlint from', dest);
