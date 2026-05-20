@@ -117,24 +117,28 @@
     "repository": "vuejs/core",
     "ref": "minor",
     "path": "vue",
-    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxfmt -c vite.config.ts"
+    "setup": "pnpm i --frozen-lockfile",
+    "command": "VP_VERSION=1 oxfmt -c vite.config.ts"
   },
   {
     "repository": "npmx-dev/npmx.dev",
     "ref": "main",
     "path": "npmx",
-    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxfmt -c vite.config.ts"
+    "setup": "pnpm i --frozen-lockfile",
+    "command": "VP_VERSION=1 oxfmt -c vite.config.ts"
   },
   {
     "repository": "aidenybai/react-grab",
     "ref": "main",
     "path": "react-grab",
-    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxfmt -c vite.config.ts"
+    "setup": "pnpm i --frozen-lockfile",
+    "command": "VP_VERSION=1 oxfmt -c vite.config.ts"
   },
   {
     "repository": "rolldown/rolldown",
     "ref": "main",
     "path": "rolldown",
-    "command": "pnpm i --frozen-lockfile && VP_VERSION=1 oxfmt -c vite.config.ts"
+    "setup": "pnpm i --frozen-lockfile",
+    "command": "VP_VERSION=1 oxfmt -c vite.config.ts"
   }
 ]

@@ -144,18 +144,41 @@ jobs:
         with:
           version: 11
 
+      # `setup` must run before oxfmt is staged.
+      # So that deps provided by the target repo end up in `node_modules/`,
+      # where they are reachable from oxfmt's CLI via Node's upward `node_modules` lookup.
+      # This is needed for `vite-plus` in Vite+ repo to load config, other deps imported by JS configs.
+      - name: Setup target repo
+        if: ${{ matrix.setup }}
+        working-directory: ${{ matrix.path }}
+        run: ${{ matrix.setup }}
+
+      # Add target repo's local bin to PATH so subsequent steps can invoke `oxfmt` without a path prefix,
+      # even though it's installed locally rather than globally.
+      - name: Configure PATH for local oxfmt
+        run: echo "$GITHUB_WORKSPACE/${{ matrix.path }}/node_modules/.bin" >> "$GITHUB_PATH"
+
       # --- Phase 1: oxfmt@latest (informational, never fails the job) ---
       - name: Install oxfmt@latest
         id: install-latest
-        run: npm install -g oxfmt@latest
         continue-on-error: true
+        run: |
+          npm pack oxfmt@latest --pack-destination /tmp
+          mkdir -p oxfmt-latest-install
+          tar -xzf /tmp/oxfmt-*.tgz -C oxfmt-latest-install --strip-components=1
+          rm /tmp/oxfmt-*.tgz
+          npm install --prefix oxfmt-latest-install --no-audit --no-fund
+          mkdir -p "${{ matrix.path }}/node_modules/.bin"
+          rm -rf "${{ matrix.path }}/node_modules/oxfmt"
+          mv oxfmt-latest-install "${{ matrix.path }}/node_modules/oxfmt"
+          ln -sf ../oxfmt/bin/oxfmt "${{ matrix.path }}/node_modules/.bin/oxfmt"
 
       - name: Run oxfmt@latest
         id: run-latest
         if: steps.install-latest.outcome == 'success'
         working-directory: ${{ matrix.path }}
-        run: ${{ matrix.command }}
         continue-on-error: true
+        run: ${{ matrix.command }}
 
       - name: Check diff (oxfmt@latest vs repo)
         id: check-latest
@@ -176,7 +199,9 @@ jobs:
             exit 1
           fi
 
-      # Reset working tree so Phase 2 starts from the original repo state
+      # `git checkout -- .` does not touch `node_modules/`,
+      # so the target's setup output (and Phase 1's installed oxfmt) survives;
+      # Phase 2 overwrites just oxfmt.
       - name: Reset working tree
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
@@ -186,29 +211,26 @@ jobs:
       - name: Install oxfmt (main branch)
         if: ${{ !cancelled() }}
         run: |
-          # Create package structure
-          # ```
-          # oxfmt-install
-          # |- package.json
-          # |- bin/oxfmt
-          # |- dist/cli.js, *.node, etc
-          # ```
+          # `pnpm pack` does not work for `apps/oxfmt` (`.node` ignored, no `bin` field),
+          # so we reconstruct the package layout manually from build artifacts.
           mkdir -p oxfmt-install
           cp oxfmt-package/npm/oxfmt/package.json oxfmt-install/
           cp -r oxfmt-package/npm/oxfmt/bin oxfmt-install/
           cp -r oxfmt-package/apps/oxfmt/dist oxfmt-install/
-          # Dependencies are not installed automatically by this way
-          cd oxfmt-install && npm install
-          cd ..
-          # Install globally
-          npm install -g ./oxfmt-install
+          # `actions/upload-artifact` strips the POSIX executable bit, so restore it.
+          chmod +x oxfmt-install/bin/oxfmt
+          npm install --prefix oxfmt-install --no-audit --no-fund
+          mkdir -p "${{ matrix.path }}/node_modules/.bin"
+          rm -rf "${{ matrix.path }}/node_modules/oxfmt"
+          mv oxfmt-install "${{ matrix.path }}/node_modules/oxfmt"
+          ln -sf ../oxfmt/bin/oxfmt "${{ matrix.path }}/node_modules/.bin/oxfmt"
 
       - name: Run oxfmt (main branch)
         id: run-main
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
-        run: ${{ matrix.command }}
         continue-on-error: true
+        run: ${{ matrix.command }}
 
       - name: Check diff (main branch vs oxfmt@latest)
         if: ${{ !cancelled() }}
