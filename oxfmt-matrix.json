@@ -108,6 +108,12 @@
     "command": "oxfmt"
   },
   {
+    "repository": "cloudflare/workers-sdk",
+    "ref": "main",
+    "path": "cf-workers-sdk",
+    "command": "oxfmt"
+  },
+  {
     "repository": "mastodon/mastodon",
     "ref": "main",
     "path": "mastodon",

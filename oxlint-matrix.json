@@ -168,5 +168,11 @@
     "ref": "main",
     "path": "cf-agents",
     "command": "oxlint examples/ packages/ guides/ openai-sdk/ site/"
+  },
+  {
+    "repository": "cloudflare/workers-sdk",
+    "ref": "main",
+    "path": "cf-workers-sdk",
+    "command": "oxlint --deny-warnings --type-aware"
   }
 ]
