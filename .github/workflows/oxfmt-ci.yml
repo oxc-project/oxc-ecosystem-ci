@@ -173,12 +173,17 @@ jobs:
           mv oxfmt-latest-install "${{ matrix.path }}/node_modules/oxfmt"
           ln -sf ../oxfmt/bin/oxfmt "${{ matrix.path }}/node_modules/.bin/oxfmt"
 
+      # oxfmt itself exits with 1 or 2 on errors; a panic (`panic = "abort"` build)
+      # dies by signal, so exit code >= 128 (134 = SIGABRT) means a panic.
       - name: Run oxfmt@latest
         id: run-latest
         if: steps.install-latest.outcome == 'success'
         working-directory: ${{ matrix.path }}
         continue-on-error: true
-        run: ${{ matrix.command }}
+        run: |
+          ${{ matrix.command }} || EXIT_CODE=$?
+          echo "exit-code=${EXIT_CODE:-0}" >> "$GITHUB_OUTPUT"
+          exit "${EXIT_CODE:-0}"
 
       - name: Check diff (oxfmt@latest vs repo)
         id: check-latest
@@ -230,31 +235,54 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
         continue-on-error: true
-        run: ${{ matrix.command }}
+        run: |
+          ${{ matrix.command }} || EXIT_CODE=$?
+          echo "exit-code=${EXIT_CODE:-0}" >> "$GITHUB_OUTPUT"
+          exit "${EXIT_CODE:-0}"
 
       - name: Check diff (main branch vs oxfmt@latest)
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
         env:
           OXFMT_REF: ${{ inputs.ref || 'main' }}
+          LATEST_EXIT: ${{ steps.run-latest.outputs.exit-code }}
+          MAIN_EXIT: ${{ steps.run-main.outputs.exit-code }}
         run: |
           git diff > /tmp/main.diff
+          if [ "$MAIN_EXIT" != "$LATEST_EXIT" ]; then
+            echo "$(oxfmt --version) ($OXFMT_REF branch) exit code ($MAIN_EXIT) differs from oxfmt@latest ($LATEST_EXIT)."
+            exit 1
+          fi
           if ! diff -q /tmp/latest.diff /tmp/main.diff > /dev/null 2>&1; then
             echo "$(oxfmt --version) ($OXFMT_REF branch) differs from oxfmt@latest:"
             diff /tmp/latest.diff /tmp/main.diff || true
             exit 1
           fi
 
-      - name: Fail if oxfmt@latest crashed
-        if: steps.run-latest.outcome == 'failure'
+      - name: Fail if oxfmt@latest panicked
+        if: steps.run-latest.outcome == 'failure' && fromJSON(steps.run-latest.outputs.exit-code) >= 128
         run: |
-          echo "Failing because oxfmt@latest crashed during execution (see Phase 1 above)."
+          echo "Failing because oxfmt@latest panicked during execution (see Phase 1 above)."
           exit 1
 
-      - name: Fail if oxfmt (main branch) crashed
-        if: ${{ !cancelled() && steps.run-main.outcome == 'failure' }}
+      - name: Fail if oxfmt@latest errored
+        if: steps.run-latest.outcome == 'failure' && fromJSON(steps.run-latest.outputs.exit-code) < 128
         run: |
-          echo "Failing because oxfmt (main branch) crashed during execution (see Phase 2 above)."
+          echo "Failing because oxfmt@latest exited with an error, e.g. parse error (see Phase 1 above)."
+          exit 1
+
+      - name: Fail if oxfmt (main branch) panicked
+        if: ${{ !cancelled() && steps.run-main.outcome == 'failure' && fromJSON(steps.run-main.outputs.exit-code) >= 128 }}
+        run: |
+          echo "Failing because oxfmt (main branch) panicked during execution (see Phase 2 above)."
+          exit 1
+
+      # An error in main branch is a regression only when oxfmt@latest did not fail the same way.
+      # If both exit with the same code, this falls through to `Check diff (main branch vs oxfmt@latest)`.
+      - name: Fail if oxfmt (main branch) errored
+        if: ${{ !cancelled() && steps.run-main.outcome == 'failure' && fromJSON(steps.run-main.outputs.exit-code) < 128 && steps.run-main.outputs.exit-code != steps.run-latest.outputs.exit-code }}
+        run: |
+          echo "Failing because oxfmt (main branch) exited with an error, e.g. parse error (see Phase 2 above)."
           exit 1
 
       - name: Fail if oxfmt@latest differs from repo
@@ -309,9 +337,11 @@ jobs:
               if (!step) return emoji.skipped;
               return emoji[step.conclusion] ?? `:grey_question:`;
             };
-            const phaseConclusion = (job, crashStep, diffStep) => {
-              const crash = job.steps?.find((s) => s.name === crashStep);
-              if (crash?.conclusion === "failure") return ":boom:";
+            const phaseConclusion = (job, panicStep, errorStep, diffStep) => {
+              const panic = job.steps?.find((s) => s.name === panicStep);
+              if (panic?.conclusion === "failure") return ":boom:";
+              const error = job.steps?.find((s) => s.name === errorStep);
+              if (error?.conclusion === "failure") return ":warning:";
               return stepConclusion(job, diffStep);
             };
             let result = jobs
@@ -320,8 +350,8 @@ jobs:
                 const suite = job.name.slice(5);
                 return {
                   suite,
-                  latest: phaseConclusion(job, "Fail if oxfmt@latest crashed", "Fail if oxfmt@latest differs from repo"),
-                  main: phaseConclusion(job, "Fail if oxfmt (main branch) crashed", "Check diff (main branch vs oxfmt@latest)"),
+                  latest: phaseConclusion(job, "Fail if oxfmt@latest panicked", "Fail if oxfmt@latest errored", "Fail if oxfmt@latest differs from repo"),
+                  main: phaseConclusion(job, "Fail if oxfmt (main branch) panicked", "Fail if oxfmt (main branch) errored", "Check diff (main branch vs oxfmt@latest)"),
                   link: job.html_url,
                 };
               });
@@ -333,6 +363,8 @@ jobs:
             | suite | oxfmt@latest | ${ref} branch |
             |-------|:---:|:---:|
             ${result.map((r) => `| [${r.suite}](${r.link}) | ${r.latest} | ${r.main} |`).join("\n")}
+
+            :boom: = panic, :warning: = error e.g. parse error (branch column: only new errors), :x: = diff or exit code mismatch
             `;
             await core.summary.addRaw(body).write();
             return body;
