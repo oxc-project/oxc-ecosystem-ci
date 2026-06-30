@@ -120,6 +120,13 @@
     "command": "oxfmt"
   },
   {
+    "repository": "mantinedev/mantine",
+    "ref": "master",
+    "path": "mantine",
+    "setup": "corepack enable && yarn install --immutable",
+    "command": "oxfmt -c oxfmt.config.mjs '**/*.{ts,tsx,css}'"
+  },
+  {
     "repository": "vuejs/core",
     "ref": "minor",
     "path": "vue",
