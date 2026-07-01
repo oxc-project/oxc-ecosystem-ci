@@ -260,13 +260,13 @@ jobs:
           fi
 
       - name: Fail if oxfmt@latest panicked
-        if: steps.run-latest.outcome == 'failure' && fromJSON(steps.run-latest.outputs.exit-code) >= 128
+        if: ${{ !cancelled() && steps.run-latest.outcome == 'failure' && fromJSON(steps.run-latest.outputs.exit-code) >= 128 }}
         run: |
           echo "Failing because oxfmt@latest panicked during execution (see Phase 1 above)."
           exit 1
 
       - name: Fail if oxfmt@latest errored
-        if: steps.run-latest.outcome == 'failure' && fromJSON(steps.run-latest.outputs.exit-code) < 128
+        if: ${{ !cancelled() && steps.run-latest.outcome == 'failure' && fromJSON(steps.run-latest.outputs.exit-code) < 128 }}
         run: |
           echo "Failing because oxfmt@latest exited with an error, e.g. parse error (see Phase 1 above)."
           exit 1
@@ -286,7 +286,7 @@ jobs:
           exit 1
 
       - name: Fail if oxfmt@latest differs from repo
-        if: steps.check-latest.outcome == 'failure'
+        if: ${{ !cancelled() && steps.check-latest.outcome == 'failure' }}
         run: |
           echo "Failing because oxfmt@latest produced a diff from the repo (see Phase 1 above)."
           exit 1
