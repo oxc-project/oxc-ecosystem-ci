@@ -44,6 +44,19 @@ Notable repositories:
 2. Oxfmt does not drop any code in the formatting process.
 3. Oxfmt does not panic during the formatting process.
 
+### How the comparison works
+
+Each repository is formatted with 3 builds of oxfmt, and their diffs are compared:
+
+| axis                 | compared against | meaning                                  | fails the run                 |
+| -------------------- | ---------------- | ---------------------------------------- | ----------------------------- |
+| `oxfmt@latest` (npm) | repository       | released version health                  | on panic or error             |
+| `main` build         | `oxfmt@latest`   | preview of merged-but-unreleased changes | only on scheduled / push runs |
+| `ref` build          | `main` build     | changes introduced by the ref under test | always                        |
+
+Comparing `ref` against a `main`-built baseline (instead of `oxfmt@latest`) keeps merged-but-unreleased changes out of PR results.
+This is useful especially for a Prettier version bump.
+
 ### Manual github workflow
 
 * open [workflow](https://github.com/oxc-project/oxc-ecosystem-ci/actions/workflows/oxfmt-ci.yml)
