@@ -57,21 +57,34 @@ jobs:
           comment-id: ${{ inputs.comment-id }}
           reactions: eyes
 
+  # Build oxfmt twice: from `main` (baseline) and from the ref under test.
+  # Comparing ref against a main-built baseline (instead of oxfmt@latest) keeps
+  # merged-but-unreleased changes (e.g. a Prettier version bump) out of PR diffs.
+  # When ref is not given, both builds are identical and the ref phase is a no-op check.
   build:
-    name: Build
+    name: Build (${{ matrix.name }})
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    strategy:
+      # Default fail-fast: the test job needs BOTH artifacts, so if one build
+      # fails there is no point finishing the other.
+      matrix:
+        include:
+          - name: main
+            ref: main
+          - name: ref
+            ref: ${{ inputs.ref || 'main' }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           repository: oxc-project/oxc
-          ref: ${{ inputs.ref }}
+          ref: ${{ matrix.ref }}
           persist-credentials: false
           show-progress: false
 
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
-          save-cache: ${{ github.ref_name == 'main' }}
+          save-cache: ${{ github.ref_name == 'main' && matrix.name == 'main' }}
 
       - uses: oxc-project/setup-node@4c588e9266bd930b6ddc34307df0659ed511d187 # v1.3.1
 
@@ -92,7 +105,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           if-no-files-found: error
-          name: oxfmt
+          name: oxfmt-${{ matrix.name }}
           path: |
             ./apps/oxfmt/dist
             ./npm/oxfmt/package.json
@@ -131,10 +144,10 @@ jobs:
           persist-credentials: false
           show-progress: false
 
+      # Downloads each artifact into its own directory: `oxfmt-main/` and `oxfmt-ref/`
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: oxfmt
-          path: oxfmt-package
+          pattern: oxfmt-*
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -207,30 +220,30 @@ jobs:
       # `git checkout -- .` does not touch `node_modules/`,
       # so the target's setup output (and Phase 1's installed oxfmt) survives;
       # Phase 2 overwrites just oxfmt.
-      - name: Reset working tree
+      - name: Reset working tree (after oxfmt@latest)
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
         run: git checkout -- .
 
-      # --- Phase 2: main branch oxfmt (always runs unless cancelled) ---
-      - name: Install oxfmt (main branch)
+      # --- Phase 2: main-built oxfmt — release preview (informational on PRs, fails scheduled/push runs) ---
+      - name: Install oxfmt (main)
         if: ${{ !cancelled() }}
         run: |
           # `pnpm pack` does not work for `apps/oxfmt` (`.node` ignored, no `bin` field),
           # so we reconstruct the package layout manually from build artifacts.
-          mkdir -p oxfmt-install
-          cp oxfmt-package/npm/oxfmt/package.json oxfmt-install/
-          cp -r oxfmt-package/npm/oxfmt/bin oxfmt-install/
-          cp -r oxfmt-package/apps/oxfmt/dist oxfmt-install/
+          mkdir -p oxfmt-install-main
+          cp oxfmt-main/npm/oxfmt/package.json oxfmt-install-main/
+          cp -r oxfmt-main/npm/oxfmt/bin oxfmt-install-main/
+          cp -r oxfmt-main/apps/oxfmt/dist oxfmt-install-main/
           # `actions/upload-artifact` strips the POSIX executable bit, so restore it.
-          chmod +x oxfmt-install/bin/oxfmt
-          npm install --prefix oxfmt-install --no-audit --no-fund
+          chmod +x oxfmt-install-main/bin/oxfmt
+          npm install --prefix oxfmt-install-main --no-audit --no-fund
           mkdir -p "${{ matrix.path }}/node_modules/.bin"
           rm -rf "${{ matrix.path }}/node_modules/oxfmt"
-          mv oxfmt-install "${{ matrix.path }}/node_modules/oxfmt"
+          mv oxfmt-install-main "${{ matrix.path }}/node_modules/oxfmt"
           ln -sf ../oxfmt/bin/oxfmt "${{ matrix.path }}/node_modules/.bin/oxfmt"
 
-      - name: Run oxfmt (main branch)
+      - name: Run oxfmt (main)
         id: run-main
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
@@ -240,25 +253,79 @@ jobs:
           echo "exit-code=${EXIT_CODE:-0}" >> "$GITHUB_OUTPUT"
           exit "${EXIT_CODE:-0}"
 
-      - name: Check diff (main branch vs oxfmt@latest)
+      # Differences here are merged-but-unreleased changes; expected between releases.
+      # Surfaced as a note on PR runs, fails only scheduled/push runs (see summary steps below).
+      - name: Check diff (main vs oxfmt@latest)
+        id: check-main
         if: ${{ !cancelled() }}
+        continue-on-error: true
         working-directory: ${{ matrix.path }}
         env:
-          OXFMT_REF: ${{ inputs.ref || 'main' }}
           LATEST_EXIT: ${{ steps.run-latest.outputs.exit-code }}
           MAIN_EXIT: ${{ steps.run-main.outputs.exit-code }}
         run: |
           git diff > /tmp/main.diff
           if [ "$MAIN_EXIT" != "$LATEST_EXIT" ]; then
-            echo "$(oxfmt --version) ($OXFMT_REF branch) exit code ($MAIN_EXIT) differs from oxfmt@latest ($LATEST_EXIT)."
+            echo "$(oxfmt --version) (main) exit code ($MAIN_EXIT) differs from oxfmt@latest ($LATEST_EXIT)."
             exit 1
           fi
           if ! diff -q /tmp/latest.diff /tmp/main.diff > /dev/null 2>&1; then
-            echo "$(oxfmt --version) ($OXFMT_REF branch) differs from oxfmt@latest:"
+            echo "$(oxfmt --version) (main) differs from oxfmt@latest:"
             diff /tmp/latest.diff /tmp/main.diff || true
             exit 1
           fi
 
+      - name: Reset working tree (after main)
+        if: ${{ !cancelled() }}
+        working-directory: ${{ matrix.path }}
+        run: git checkout -- .
+
+      # --- Phase 3: ref-built oxfmt — the changes under test (always fails on difference from main) ---
+      # Same staging dance as `Install oxfmt (main)` above; keep the two in sync.
+      - name: Install oxfmt (ref)
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p oxfmt-install-ref
+          cp oxfmt-ref/npm/oxfmt/package.json oxfmt-install-ref/
+          cp -r oxfmt-ref/npm/oxfmt/bin oxfmt-install-ref/
+          cp -r oxfmt-ref/apps/oxfmt/dist oxfmt-install-ref/
+          chmod +x oxfmt-install-ref/bin/oxfmt
+          npm install --prefix oxfmt-install-ref --no-audit --no-fund
+          mkdir -p "${{ matrix.path }}/node_modules/.bin"
+          rm -rf "${{ matrix.path }}/node_modules/oxfmt"
+          mv oxfmt-install-ref "${{ matrix.path }}/node_modules/oxfmt"
+          ln -sf ../oxfmt/bin/oxfmt "${{ matrix.path }}/node_modules/.bin/oxfmt"
+
+      - name: Run oxfmt (ref)
+        id: run-ref
+        if: ${{ !cancelled() }}
+        working-directory: ${{ matrix.path }}
+        continue-on-error: true
+        run: |
+          ${{ matrix.command }} || EXIT_CODE=$?
+          echo "exit-code=${EXIT_CODE:-0}" >> "$GITHUB_OUTPUT"
+          exit "${EXIT_CODE:-0}"
+
+      - name: Check diff (ref vs main)
+        if: ${{ !cancelled() }}
+        working-directory: ${{ matrix.path }}
+        env:
+          OXFMT_REF: ${{ inputs.ref || 'main' }}
+          MAIN_EXIT: ${{ steps.run-main.outputs.exit-code }}
+          REF_EXIT: ${{ steps.run-ref.outputs.exit-code }}
+        run: |
+          git diff > /tmp/ref.diff
+          if [ "$REF_EXIT" != "$MAIN_EXIT" ]; then
+            echo "$(oxfmt --version) ($OXFMT_REF) exit code ($REF_EXIT) differs from main build ($MAIN_EXIT)."
+            exit 1
+          fi
+          if ! diff -q /tmp/main.diff /tmp/ref.diff > /dev/null 2>&1; then
+            echo "$(oxfmt --version) ($OXFMT_REF) differs from main build:"
+            diff /tmp/main.diff /tmp/ref.diff || true
+            exit 1
+          fi
+
+      # --- Summary steps: drive job conclusion and the comment table ---
       - name: Fail if oxfmt@latest panicked
         if: ${{ !cancelled() && steps.run-latest.outcome == 'failure' && fromJSON(steps.run-latest.outputs.exit-code) >= 128 }}
         run: |
@@ -271,18 +338,39 @@ jobs:
           echo "Failing because oxfmt@latest exited with an error, e.g. parse error (see Phase 1 above)."
           exit 1
 
-      - name: Fail if oxfmt (main branch) panicked
+      - name: Fail if oxfmt (main) panicked
         if: ${{ !cancelled() && steps.run-main.outcome == 'failure' && fromJSON(steps.run-main.outputs.exit-code) >= 128 }}
         run: |
-          echo "Failing because oxfmt (main branch) panicked during execution (see Phase 2 above)."
+          echo "Failing because oxfmt (main) panicked during execution (see Phase 2 above)."
           exit 1
 
-      # An error in main branch is a regression only when oxfmt@latest did not fail the same way.
-      # If both exit with the same code, this falls through to `Check diff (main branch vs oxfmt@latest)`.
-      - name: Fail if oxfmt (main branch) errored
-        if: ${{ !cancelled() && steps.run-main.outcome == 'failure' && fromJSON(steps.run-main.outputs.exit-code) < 128 && steps.run-main.outputs.exit-code != steps.run-latest.outputs.exit-code }}
+      # Visibility marker for the comment table; succeeding here does NOT fail the job.
+      - name: Note oxfmt (main) differs from oxfmt@latest
+        if: ${{ !cancelled() && steps.check-main.outcome == 'failure' }}
         run: |
-          echo "Failing because oxfmt (main branch) exited with an error, e.g. parse error (see Phase 2 above)."
+          echo "oxfmt (main) produces different output than oxfmt@latest."
+          echo "This is expected when merged-but-unreleased changes exist (see Phase 2 above)."
+
+      # Unreleased drift should only fail runs whose purpose is to watch main (scheduled/push),
+      # not PR runs testing a specific ref.
+      - name: Fail if oxfmt (main) differs from oxfmt@latest
+        if: ${{ !cancelled() && (github.event_name == 'schedule' || github.event_name == 'push') && steps.check-main.outcome == 'failure' }}
+        run: |
+          echo "Failing because oxfmt (main) produced a different diff than oxfmt@latest (see Phase 2 above)."
+          exit 1
+
+      - name: Fail if oxfmt (ref) panicked
+        if: ${{ !cancelled() && steps.run-ref.outcome == 'failure' && fromJSON(steps.run-ref.outputs.exit-code) >= 128 }}
+        run: |
+          echo "Failing because oxfmt (ref) panicked during execution (see Phase 3 above)."
+          exit 1
+
+      # An error in the ref build is a regression only when the main build did not fail the same way.
+      # If both exit with the same code, this falls through to `Check diff (ref vs main)`.
+      - name: Fail if oxfmt (ref) errored
+        if: ${{ !cancelled() && steps.run-ref.outcome == 'failure' && fromJSON(steps.run-ref.outputs.exit-code) < 128 && steps.run-ref.outputs.exit-code != steps.run-main.outputs.exit-code }}
+        run: |
+          echo "Failing because oxfmt (ref) exited with an error, e.g. parse error (see Phase 3 above)."
           exit 1
 
       - name: Fail if oxfmt@latest differs from repo
@@ -334,7 +422,8 @@ jobs:
             };
             const stepConclusion = (job, stepName) => {
               const step = job.steps?.find((s) => s.name === stepName);
-              if (!step) return emoji.skipped;
+              // Fail closed: a missing step means a rename in the test job was not mirrored here
+              if (!step) return ":grey_question:";
               return emoji[step.conclusion] ?? `:grey_question:`;
             };
             const phaseConclusion = (job, panicStep, errorStep, diffStep) => {
@@ -348,10 +437,19 @@ jobs:
               .filter((job) => job.name.startsWith("Test "))
               .map((job) => {
                 const suite = job.name.slice(5);
+                const failed = (name) => job.steps?.find((s) => s.name === name)?.conclusion === "failure";
+                const noted = job.steps?.find((s) => s.name === "Note oxfmt (main) differs from oxfmt@latest")?.conclusion === "success";
+                // main column has no :warning: state: an error on main is not the ref's concern,
+                // it surfaces as drift (yellow) here and fails the scheduled runs that watch main
+                const main = failed("Fail if oxfmt (main) panicked") ? ":boom:"
+                  : failed("Fail if oxfmt (main) differs from oxfmt@latest") ? emoji.failure
+                  : noted ? ":yellow_square:"
+                  : emoji.success;
                 return {
                   suite,
                   latest: phaseConclusion(job, "Fail if oxfmt@latest panicked", "Fail if oxfmt@latest errored", "Fail if oxfmt@latest differs from repo"),
-                  main: phaseConclusion(job, "Fail if oxfmt (main branch) panicked", "Fail if oxfmt (main branch) errored", "Check diff (main branch vs oxfmt@latest)"),
+                  main,
+                  ref: phaseConclusion(job, "Fail if oxfmt (ref) panicked", "Fail if oxfmt (ref) errored", "Check diff (ref vs main)"),
                   link: job.html_url,
                 };
               });
@@ -360,11 +458,11 @@ jobs:
             const ref = process.env.INPUT_REF || "main";
             const body = `
             ## [Oxfmt Ecosystem CI](${urlLink})
-            | suite | oxfmt@latest | ${ref} branch |
-            |-------|:---:|:---:|
-            ${result.map((r) => `| [${r.suite}](${r.link}) | ${r.latest} | ${r.main} |`).join("\n")}
+            | suite | oxfmt@latest | main | ${ref} branch |
+            |-------|:---:|:---:|:---:|
+            ${result.map((r) => `| [${r.suite}](${r.link}) | ${r.latest} | ${r.main} | ${r.ref} |`).join("\n")}
 
-            :boom: = panic, :warning: = error e.g. parse error (branch column: only new errors), :x: = diff or exit code mismatch
+            :boom: = panic, :warning: = error e.g. parse error (main/branch columns: only new errors), :x: = diff or exit code mismatch, :yellow_square: = differs from oxfmt@latest (merged-but-unreleased changes)
             `;
             await core.summary.addRaw(body).write();
             return body;
