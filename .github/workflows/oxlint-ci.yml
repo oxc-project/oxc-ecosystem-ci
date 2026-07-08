@@ -62,7 +62,7 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: oxc-project/oxc
           ref: ${{ inputs.ref }}
@@ -123,7 +123,7 @@ jobs:
     name: Test ${{ matrix.repository }}
     steps:
       - name: Clone ${{ matrix.repository }}
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           repository: ${{ matrix.repository }}
           ref: ${{ matrix.ref }}
@@ -157,7 +157,7 @@ jobs:
 
       # Need to checkout oxc-ecosystem-ci to access install-oxlint-plugins.js
       - name: Checkout ecosystem repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           repository: oxc-project/oxc-ecosystem-ci
           path: oxc-ecosystem-ci
