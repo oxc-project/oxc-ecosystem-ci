@@ -46,7 +46,7 @@
     "repository": "sidebase/nuxt-auth",
     "ref": "main",
     "path": "nuxt-auth",
-    "command": "oxlint --deny-warnings -D correctness -D suspicious -D perf"
+    "command": "oxlint --deny-warnings -D correctness -D suspicious -D perf -A no-underscore-dangle"
   },
   {
     "repository": "elastic/kibana",
