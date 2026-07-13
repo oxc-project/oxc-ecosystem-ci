@@ -157,7 +157,7 @@ jobs:
         with:
           # TODO: Temporarily pinned, pnpm@11.12.0 fails to install itself.
           # See https://github.com/pnpm/action-setup/issues/276
-          version: 11.11.0
+          version: 11.12.0
 
       # `setup` must run before oxfmt is staged.
       # So that deps provided by the target repo end up in `node_modules/`,
