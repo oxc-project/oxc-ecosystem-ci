@@ -7,7 +7,7 @@ This repository is used to run integration tests for `oxlint` and `oxfmt` ecosys
 ### Maintenance
 
 * [Boshen](https://github.com/Boshen) may submit a `oxlint` adjustment PR to your repository if it fails to run correctly.
-* Due to maintenance burden, a [sponsorship](https://github.com/sponsors/Boshen) will have a more likely hood of having the PR accepted.
+* Due to maintenance burden, a [sponsorship](https://oxc.rs/sponsor) will have a more likely hood of having the PR accepted.
 
 ### Manual github workflow
 
@@ -72,10 +72,10 @@ This is useful especially for a Prettier version bump.
 
 See [./oxfmt-matrix.json](./oxfmt-matrix.json).
 
-## ❤ Who's [Sponsoring Oxc](https://github.com/sponsors/Boshen)?
+# [Sponsored By](https://oxc.rs/sponsor)
 
 <p align="center">
-  <a href="https://github.com/sponsors/Boshen">
-    <img src="https://raw.githubusercontent.com/Boshen/sponsors/main/sponsors.svg" alt="Our sponsors" />
+  <a href="https://oxc.rs/sponsor">
+    <img src="https://raw.githubusercontent.com/oxc-project/sponsors/main/sponsors.svg" alt="Our sponsors" />
   </a>
 </p>
