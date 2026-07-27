@@ -153,5 +153,12 @@
     "path": "rolldown",
     "setup": "pnpm i --frozen-lockfile",
     "command": "VP_VERSION=1 oxfmt -c vite.config.ts"
+  },
+  {
+    "repository": "cloudflare/kumo",
+    "ref": "main",
+    "path": "kumo",
+    "setup": "pnpm i --frozen-lockfile",
+    "command": "VP_VERSION=1 oxfmt -c vite.config.ts"
   }
 ]
