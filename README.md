@@ -27,7 +27,6 @@ See [./oxlint-matrix.json](./oxlint-matrix.json).
 
 Notable repositories:
 
-* [rolldown/rolldown](https://github.com/rolldown-rs/rolldown)
 * [napi-rs/napi-rs](https://github.com/napi-rs/napi-rs)
 * [toeverything/affine](https://github.com/toeverything/affine)
 * [preactjs/preact](https://github.com/preactjs/preact)
