@@ -1,12 +1,5 @@
 [
   {
-    "repository": "rolldown/rolldown",
-    "ref": "main",
-    "path": "rolldown",
-    "setup": "pnpm i --frozen-lockfile",
-    "command": "VP_VERSION=1 oxlint -c vite.config.ts --deny-warnings --ignore-path=.oxlintignore --import-plugin --jsdoc-plugin"
-  },
-  {
     "repository": "cloudflare/kumo",
     "ref": "main",
     "path": "kumo",
