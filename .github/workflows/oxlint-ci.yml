@@ -82,8 +82,8 @@ jobs:
 
       - run: pnpm run build
         working-directory: ./apps/oxlint
-        env:
-          RUSTFLAGS: "-C debug-assertions=true"
+        # env:
+        #   RUSTFLAGS: "-C debug-assertions=true"
 
       # `pnpm pack` does not work for `apps/oxlint` because:
       # - `.node` is ignored, not being packed
