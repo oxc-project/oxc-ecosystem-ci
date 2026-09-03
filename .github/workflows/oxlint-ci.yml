@@ -73,7 +73,7 @@ jobs:
         with:
           save-cache: ${{ github.ref_name == 'main' }}
 
-      - uses: oxc-project/setup-node@d59b270414aa7d0eed947eed4eb5b0b8a675f01d # v1.4.0
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
