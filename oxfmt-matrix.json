@@ -130,6 +130,7 @@
     "repository": "sveltejs/kit",
     "ref": "version-3",
     "path": "sveltekit",
+    "setup": "pnpm --filter @sveltejs/kit install --frozen-lockfile --public-hoist-pattern=svelte",
     "command": "oxfmt"
   },
   {
