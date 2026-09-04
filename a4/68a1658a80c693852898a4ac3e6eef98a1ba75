@@ -1,0 +1,19 @@
+oxfmt-matrix.json
+  s_3d88d7d0e5a40e::t_a06413a06e40d4 133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a468a1658a80c693852898a4ac3e6eef98a1ba75",
+  "prompts": {},
+  "sessions": {
+    "s_3d88d7d0e5a40e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06a42-dcf2-75f0-a0a3-8c7d145dabea",
+        "model": "unknown"
+      },
+      "human_author": "leaysgur <6259812+leaysgur@users.noreply.github.com>"
+    }
+  }
+}
