@@ -127,6 +127,12 @@
     "command": "oxfmt -c oxfmt.config.mjs '**/*.{ts,tsx,css}'"
   },
   {
+    "repository": "sveltejs/kit",
+    "ref": "version-3",
+    "path": "sveltekit",
+    "command": "oxfmt"
+  },
+  {
     "repository": "vuejs/core",
     "ref": "minor",
     "path": "vue",
