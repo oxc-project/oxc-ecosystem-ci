@@ -25,15 +25,12 @@ const matrix = require(matrixFile);
  * @param {import("./clone").MatrixItem} item
  */
 function syncAndResetRepo(item) {
-  const cmd = [
-    `cd repos/${item.path}`,
-    `git reset --hard`,
-    `git checkout ${item.ref}`,
-    `git pull`,
-  ].join(" && ");
+  const cwd = `repos/${item.path}`;
 
-  console.log(`Running ${cmd}`);
-  cp.execSync(cmd, { stdio: "inherit" });
+  console.log(`Resetting ${cwd} to ${item.ref}`);
+  cp.execFileSync("git", ["reset", "--hard"], { cwd, stdio: "inherit" });
+  cp.execFileSync("git", ["checkout", item.ref], { cwd, stdio: "inherit" });
+  cp.execFileSync("git", ["pull"], { cwd, stdio: "inherit" });
 }
 
 function reset() {
