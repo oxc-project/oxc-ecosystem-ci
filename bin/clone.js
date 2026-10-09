@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const exec = require("child_process").exec;
+const execFile = require("child_process").execFile;
 
 // Parse command-line arguments
 const args = process.argv.slice(2);
@@ -33,10 +33,19 @@ const matrix = require(matrixFile);
  * @param {MatrixItem} item
  */
 function cloneRepo(item) {
-  const command = `git clone --depth=1 --filter=blob:none --no-tags -b ${item.ref} git@github.com:${item.repository}.git repos/${item.path}`;
+  const args = [
+    "clone",
+    "--depth=1",
+    "--filter=blob:none",
+    "--no-tags",
+    "-b",
+    item.ref,
+    `git@github.com:${item.repository}.git`,
+    `repos/${item.path}`,
+  ];
 
-  console.log(`Running ${command}`);
-  exec(command, function (err) {
+  console.log(`Running git ${args.join(" ")}`);
+  execFile("git", args, function (err) {
     if (err) {
       console.error(err);
       return;
