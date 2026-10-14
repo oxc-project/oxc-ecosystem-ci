@@ -1,0 +1,21 @@
+.github/workflows/oxfmt-ci.yml
+  s_e6d3a741af8e72::t_91c0344404f567 47,397-398
+.github/workflows/oxlint-ci.yml
+  s_e6d3a741af8e72::t_e27856cf89f28b 47,238-239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "117f50fab068da830eef045713744d3cf858f8bc",
+  "prompts": {},
+  "sessions": {
+    "s_e6d3a741af8e72": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a137cc-8a10-7673-b063-d588ee971692",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "leaysgur <6259812+leaysgur@users.noreply.github.com>"
+    }
+  }
+}
