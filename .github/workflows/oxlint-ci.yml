@@ -44,6 +44,7 @@ jobs:
         with:
           client-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-pull-requests: write
           owner: oxc-project
           repositories: |
             ${{ github.event.repository.name }}
@@ -234,6 +235,8 @@ jobs:
         with:
           client-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-pull-requests: write
+          permission-actions: read
           owner: oxc-project
           repositories: |
             ${{ github.event.repository.name }}
