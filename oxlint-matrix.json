@@ -3,6 +3,7 @@
     "repository": "cloudflare/kumo",
     "ref": "main",
     "path": "kumo",
+    "pnpm_version": "10.34.0",
     "setup": "pnpm i --frozen-lockfile",
     "command": "VP_VERSION=1 oxlint -c vite.config.ts"
   },
