@@ -156,7 +156,7 @@ jobs:
       - name: Install oxlint-tsgolint globally
         run: npm install -g oxlint-tsgolint
 
-      # Need to checkout oxc-ecosystem-ci to access install-oxlint-plugins.js
+      # Need to checkout oxc-ecosystem-ci to access install-oxlint-plugins.js and `scripts/vite-plus-compat`
       - name: Checkout ecosystem repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -164,6 +164,11 @@ jobs:
           path: oxc-ecosystem-ci
           persist-credentials: false
           show-progress: false
+
+      # For Vite+ repos on `vite-plus` < 1.5.0, see the script.
+      # Only after the checkout: Node fails to start while the file is missing.
+      - name: Enable vite-plus compat
+        run: echo "NODE_OPTIONS=--import $GITHUB_WORKSPACE/oxc-ecosystem-ci/scripts/vite-plus-compat/register.mjs" >> "$GITHUB_ENV"
 
       - name: pnpm install
         run: pnpm install
