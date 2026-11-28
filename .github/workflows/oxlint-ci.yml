@@ -156,7 +156,7 @@ jobs:
       - name: Install oxlint-tsgolint globally
         run: npm install -g oxlint-tsgolint
 
-      # Need to checkout oxc-ecosystem-ci to access install-oxlint-plugins.js
+      # Need to checkout oxc-ecosystem-ci to access install-oxlint-plugins.js and `scripts/vite-plus-compat`
       - name: Checkout ecosystem repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -201,6 +201,10 @@ jobs:
 
       - name: Run
         working-directory: ${{ matrix.path }}
+        env:
+          # For Vite+ repos on `vite-plus` < 1.5.0, see the script.
+          # Per step, as `$GITHUB_ENV` rejects `NODE_OPTIONS`.
+          NODE_OPTIONS: --import ${{ github.workspace }}/oxc-ecosystem-ci/scripts/vite-plus-compat/register.mjs
         run: ${{ matrix.command }}
 
       - name: Check Panic
