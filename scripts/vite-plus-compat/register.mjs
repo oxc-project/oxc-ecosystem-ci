@@ -1,13 +1,11 @@
 // Gives oxfmt and oxlint `resolveConfigFromFile` on a `vite-plus` older than 1.5.0.
 //
-// With `VP_VERSION`, both load `vite.config.*` with `resolveConfigFromFile` of the repo's `vite-plus`
-// (since oxc-project/oxc#28801).
-// Vite+ runs them at the versions it pins, so the function always exists there.
-// But CI runs the latest oxfmt and oxlint with each repo's `vite-plus`, which can be older.
+// With `VP_VERSION`, both call it to load `vite.config.*` (since oxc-project/oxc#28801).
+// Vite+ pins the oxfmt and oxlint it runs, but CI pairs the latest ones with each repo's `vite-plus`.
 //
 // Usage: `NODE_OPTIONS="--import <this file>"`
-// - `import("vite-plus")` from oxfmt or oxlint gets `./vite-plus.mjs`
-// - It falls back to `resolveConfig`, the API used before oxc-project/oxc#28801
+// - `import("vite-plus")` from oxfmt or oxlint gets `./vite-plus.mjs`,
+//   which falls back to `resolveConfig`, the API used before that PR
 // - A no-op with `vite-plus` >= 1.5.0; remove once every repo is there
 import { registerHooks } from "node:module";
 

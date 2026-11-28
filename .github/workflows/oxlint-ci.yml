@@ -166,7 +166,7 @@ jobs:
           show-progress: false
 
       # For Vite+ repos on `vite-plus` < 1.5.0, see the script.
-      # Only after the checkout: Node fails to start while the file is missing.
+      # After the checkout: Node fails to start without the file.
       - name: Enable vite-plus compat
         run: echo "NODE_OPTIONS=--import $GITHUB_WORKSPACE/oxc-ecosystem-ci/scripts/vite-plus-compat/register.mjs" >> "$GITHUB_ENV"
 
