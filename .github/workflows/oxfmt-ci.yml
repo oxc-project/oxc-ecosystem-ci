@@ -177,11 +177,6 @@ jobs:
           persist-credentials: false
           show-progress: false
 
-      # For Vite+ repos on `vite-plus` < 1.5.0, see the script.
-      # After the checkout: Node fails to start without the file.
-      - name: Enable vite-plus compat
-        run: echo "NODE_OPTIONS=--import $GITHUB_WORKSPACE/oxc-ecosystem-ci/scripts/vite-plus-compat/register.mjs" >> "$GITHUB_ENV"
-
       # Add target repo's local bin to PATH so subsequent steps can invoke `oxfmt` without a path prefix,
       # even though it's installed locally rather than globally.
       - name: Configure PATH for local oxfmt
@@ -209,6 +204,10 @@ jobs:
         if: steps.install-latest.outcome == 'success'
         working-directory: ${{ matrix.path }}
         continue-on-error: true
+        env:
+          # For Vite+ repos on `vite-plus` < 1.5.0, see the script.
+          # Per step, as `$GITHUB_ENV` rejects `NODE_OPTIONS`.
+          NODE_OPTIONS: --import ${{ github.workspace }}/oxc-ecosystem-ci/scripts/vite-plus-compat/register.mjs
         run: |
           ${{ matrix.command }} || EXIT_CODE=$?
           echo "exit-code=${EXIT_CODE:-0}" >> "$GITHUB_OUTPUT"
@@ -264,6 +263,9 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
         continue-on-error: true
+        env:
+          # See `Run oxfmt@latest`
+          NODE_OPTIONS: --import ${{ github.workspace }}/oxc-ecosystem-ci/scripts/vite-plus-compat/register.mjs
         run: |
           ${{ matrix.command }} || EXIT_CODE=$?
           echo "exit-code=${EXIT_CODE:-0}" >> "$GITHUB_OUTPUT"
@@ -317,6 +319,9 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: ${{ matrix.path }}
         continue-on-error: true
+        env:
+          # See `Run oxfmt@latest`
+          NODE_OPTIONS: --import ${{ github.workspace }}/oxc-ecosystem-ci/scripts/vite-plus-compat/register.mjs
         run: |
           ${{ matrix.command }} || EXIT_CODE=$?
           echo "exit-code=${EXIT_CODE:-0}" >> "$GITHUB_OUTPUT"
